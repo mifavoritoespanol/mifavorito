@@ -15,6 +15,7 @@ type Category = { id: number; name: string; emoji: string | null };
 type Item = {
   id: number;
   name: string;
+  slug: string;
   description: string | null;
   total_cents: number;
 };
@@ -170,7 +171,7 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <span className="mr-2 font-bold">#{i + 1}</span>
-                {item.name}
+                <a href={`/i/${item.slug}`} className="underline">{item.name}</a>
                 <div className="text-sm text-gray-500">{item.description}</div>
               </div>
               <div className="text-right">
