@@ -1,37 +1,23 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  FaXTwitter,
-  FaWhatsapp,
-  FaFacebookF,
-  FaTelegram,
-  FaLink,
-} from "react-icons/fa6";
 import { supabase } from "@/lib/supabase";
+import type { Item } from "@/lib/shared";
+import { eur, medals } from "@/lib/shared";
+import ItemSheet from "@/components/ItemSheet";
  
-type Item = {
-  id: number;
-  category_id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  total_cents: number;
-};
 type Supporter = { username: string; amount_cents: number };
+type Cat = { slug: string; name: string; emoji: string | null };
  
 function ItemView() {
   const { slug } = useParams<{ slug: string }>();
   const [item, setItem] = useState<Item | null>(null);
+  const [cat, setCat] = useState<Cat | null>(null);
   const [rank, setRank] = useState(1);
   const [gap, setGap] = useState<number | null>(null);
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [missing, setMissing] = useState(false);
-  const [username, setUsername] = useState("");
-  const [amount, setAmount] = useState("1");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [mode, setMode] = useState<"support" | "share" | null>(null);
  
   useEffect(() => {
     async function load() {
@@ -45,6 +31,13 @@ function ItemView() {
         return;
       }
       setItem(data);
+ 
+      const { data: c } = await supabase
+        .from("categories")
+        .select("slug, name, emoji")
+        .eq("id", data.category_id)
+        .single();
+      setCat(c);
  
       const { count } = await supabase
         .from("items")
@@ -73,132 +66,85 @@ function ItemView() {
     load();
   }, [slug]);
  
-  async function pay() {
-    if (!item) return;
-    setLoading(true);
-    setError("");
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        itemId: item.id,
-        itemName: item.name,
-        amount,
-        username,
-      }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    else {
-      setError(data.error ?? "Error");
-      setLoading(false);
-    }
-  }
- 
-  if (missing) return <main className="p-4">No encontrado.</main>;
-  if (!item) return <main className="p-4">...</main>;
- 
-  const url = typeof window !== "undefined" ? window.location.href : "";
-  const text = `Estoy apoyando a ${item.name} en mifavorito. ¡Ayúdame a llevarlo al número uno!`;
-  const e = encodeURIComponent;
-  const shares = [
-    [<FaXTwitter key="x" />, `https://twitter.com/intent/tweet?text=${e(text)}&url=${e(url)}`, "X"],
-    [<FaWhatsapp key="w" />, `https://wa.me/?text=${e(text + " " + url)}`, "WhatsApp"],
-    [<FaFacebookF key="f" />, `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`, "Facebook"],
-    [<FaTelegram key="t" />, `https://t.me/share/url?url=${e(url)}&text=${e(text)}`, "Telegram"],
-  ] as const;
+  if (missing) return <main className="p-4 text-white">No encontrado.</main>;
+  if (!item) return <main className="p-4 text-white">...</main>;
  
   return (
-    <main className="mx-auto max-w-xl space-y-4 p-4">
-      <a href="/" className="text-sm text-gray-500 underline">
-        ← mifavorito
-      </a>
- 
-      <div className="rounded-lg border p-4 text-center">
-        <div className="text-5xl font-bold">#{rank}</div>
-        <h1 className="mt-2 text-2xl font-bold">{item.name}</h1>
-        <p className="text-gray-500">{item.description}</p>
-        <div className="mt-2 text-xl font-semibold">
-          {(item.total_cents / 100).toFixed(2)} €
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <main className="mx-auto max-w-xl px-4 pb-32">
+        <div className="flex justify-between py-4 text-sm text-zinc-400">
+          <a href="/">← mifavorito</a>
+          {cat && (
+            <a href={`/c/${cat.slug}`}>
+              {cat.emoji} {cat.name}
+            </a>
+          )}
         </div>
-        {gap !== null && (
-          <div className="mt-1 text-sm text-gray-600">
-            Faltan {(gap / 100).toFixed(2)} € para subir al #{rank - 1}
+ 
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-center">
+          <div className="text-6xl font-extrabold">
+            {rank <= 3 ? medals[rank - 1] : `#${rank}`}
+          </div>
+          <div className="mt-1 text-sm text-zinc-500">Puesto #{rank}</div>
+          <h1 className="mt-3 text-3xl font-extrabold">{item.name}</h1>
+          <p className="mt-1 text-zinc-400">{item.description}</p>
+          <div className="mt-4 bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-4xl font-extrabold text-transparent">
+            {eur(item.total_cents)}
+          </div>
+          <div className="mt-2 text-sm text-rose-300">
+            {gap !== null
+              ? `Faltan ${eur(gap)} para subir al #${rank - 1}`
+              : "¡Es el número uno! Ayúdalo a defender su puesto."}
+          </div>
+        </div>
+ 
+        {supporters.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-2 font-bold">Últimos apoyos</h2>
+            <ul className="space-y-2">
+              {supporters.map((s, i) => (
+                <li
+                  key={i}
+                  className="flex justify-between rounded-xl bg-zinc-900 px-4 py-3 text-sm"
+                >
+                  <span>{s.username}</span>
+                  <span className="font-semibold text-amber-300">
+                    {eur(s.amount_cents)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
-      </div>
+      </main>
  
-      <div className="space-y-2 rounded-lg border p-4">
-        <input
-          value={username}
-          onChange={(ev) => setUsername(ev.target.value)}
-          placeholder="Tu nombre de usuario"
-          maxLength={30}
-          className="w-full rounded border p-2"
-        />
-        <input
-          type="number"
-          min="1"
-          value={amount}
-          onChange={(ev) => setAmount(ev.target.value)}
-          className="w-full rounded border p-2"
-        />
-        {error && <div className="text-red-600">{error}</div>}
-        <button
-          onClick={pay}
-          disabled={loading || !username}
-          className="w-full rounded bg-green-600 p-2 text-white disabled:opacity-50"
-        >
-          {loading ? "..." : `Apoyar con ${amount} €`}
-        </button>
-      </div>
- 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-gray-500">Impulsar:</span>
-        {shares.map(([icon, href, label]) => (
-          <a
-            key={label}
-            href={href}
-            aria-label={label}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded border p-2 text-xl"
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-zinc-950/95 p-3 pb-5 backdrop-blur">
+        <div className="mx-auto flex max-w-xl gap-2">
+          <button
+            onClick={() => setMode("support")}
+            className="flex-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 py-3.5 text-lg font-extrabold text-black"
           >
-            {icon}
-          </a>
-        ))}
-        <button
-          aria-label="Copiar enlace"
-          onClick={async () => {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-          className="rounded border p-2 text-xl"
-        >
-          {copied ? "✓" : <FaLink />}
-        </button>
+            Apoyar
+          </button>
+          <button
+            onClick={() => setMode("share")}
+            className="rounded-full border border-zinc-700 px-6 font-semibold text-zinc-200"
+          >
+            Impulsar
+          </button>
+        </div>
       </div>
  
-      {supporters.length > 0 && (
-        <div>
-          <h2 className="mb-2 font-semibold">Últimos apoyos</h2>
-          <ul className="space-y-1 text-sm">
-            {supporters.map((s, i) => (
-              <li key={i} className="flex justify-between">
-                <span>{s.username}</span>
-                <span>{(s.amount_cents / 100).toFixed(2)} €</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {mode && (
+        <ItemSheet item={item} mode={mode} onClose={() => setMode(null)} />
       )}
-    </main>
+    </div>
   );
 }
+ 
 export default function ItemPage() {
   return (
-    <Suspense fallback={<main className="p-4">...</main>}>
+    <Suspense fallback={<main className="p-4 text-white">...</main>}>
       <ItemView />
     </Suspense>
   );

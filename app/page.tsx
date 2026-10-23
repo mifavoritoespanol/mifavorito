@@ -1,43 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import {
-  FaXTwitter,
-  FaWhatsapp,
-  FaFacebookF,
-  FaTelegram,
-  FaInstagram,
-  FaLink,
-} from "react-icons/fa6";
 import { supabase } from "@/lib/supabase";
- 
-type Category = { id: number; name: string; emoji: string | null };
-type Item = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  total_cents: number;
-};
- 
-const icons: Record<string, ReactNode> = {
-  X: <FaXTwitter />,
-  WhatsApp: <FaWhatsapp />,
-  Facebook: <FaFacebookF />,
-  Telegram: <FaTelegram />,
-};
+import type { Category, Item, SheetState } from "@/lib/shared";
+import RankRow from "@/components/RankRow";
+import ItemSheet from "@/components/ItemSheet";
  
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-  const [active, setActive] = useState<number | null>(null);
-  const [selected, setSelected] = useState<Item | null>(null);
-  const [shareItem, setShareItem] = useState<Item | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [username, setUsername] = useState("");
-  const [amount, setAmount] = useState("1");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [sheet, setSheet] = useState<SheetState>(null);
   const [thanks, setThanks] = useState(false);
   const [refresh, setRefresh] = useState(0);
  
@@ -60,204 +31,85 @@ export default function Home() {
       .from("categories")
       .select("*")
       .order("sort")
-      .then(({ data }) => {
-        if (data) {
-          setCategories(data);
-          setActive(data[0]?.id ?? null);
-        }
-      });
+      .then(({ data }) => setCategories(data ?? []));
   }, []);
  
   useEffect(() => {
-    if (active === null) return;
     supabase
       .from("items")
       .select("*")
-      .eq("category_id", active)
       .order("total_cents", { ascending: false })
       .then(({ data }) => setItems(data ?? []));
-  }, [active, refresh]);
- 
-  async function pay() {
-    if (!selected) return;
-    setLoading(true);
-    setError("");
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        itemId: selected.id,
-        itemName: selected.name,
-        amount,
-        username,
-      }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      setError(data.error ?? "Error");
-      setLoading(false);
-    }
-  }
- 
-  function message(item: Item) {
-    return `Estoy apoyando a ${item.name} en mifavorito. ¡Ayúdame a llevarlo al número uno!`;
-  }
- 
-  function impulsar(item: Item) {
-    setShareItem(shareItem?.id === item.id ? null : item);
-  }
- 
-  async function compartirMas(item: Item) {
-    try {
-      await navigator.share({
-        title: "mifavorito",
-        text: message(item),
-        url: window.location.origin,
-      });
-    } catch {
-      /* cancelado */
-    }
-  }
- 
-  function links(item: Item) {
-    const url = encodeURIComponent(window.location.origin);
-    const text = encodeURIComponent(message(item));
-    return [
-      ["X", `https://twitter.com/intent/tweet?text=${text}&url=${url}`],
-      ["WhatsApp", `https://wa.me/?text=${text}%20${url}`],
-      ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${url}`],
-      ["Telegram", `https://t.me/share/url?url=${url}&text=${text}`],
-    ];
-  }
- 
-  async function copyLink() {
-    await navigator.clipboard.writeText(window.location.origin);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  }, [refresh]);
  
   return (
-    <main className="mx-auto max-w-xl p-4">
-      <h1 className="text-3xl font-bold">mifavorito</h1>
-      <p className="mb-4 text-gray-500">
-        ¿Quién es el número uno? Haz subir a tu favorito.
-      </p>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <main className="mx-auto max-w-xl px-4 pb-20">
+        <header className="py-8 text-center">
+          <h1 className="bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-4xl font-extrabold text-transparent">
+            mifavorito
+          </h1>
+          <p className="mt-3 text-lg font-semibold">¿Quién es el número uno?</p>
+          <p className="mt-1 text-zinc-400">
+            Apoya a tu favorito desde 1 € y llévalo a la cima.
+          </p>
+        </header>
  
-      {thanks && (
-        <div className="mb-4 rounded-lg bg-green-100 p-3 text-green-900">
-          ¡Gracias por tu apoyo! Ahora impúlsalo: compártelo.
-        </div>
+        {thanks && (
+          <div className="mb-6 rounded-xl bg-emerald-500/15 p-3 text-emerald-300">
+            ¡Gracias por tu apoyo! Ahora impúlsalo: compártelo.
+          </div>
+        )}
+ 
+        {categories.map((cat) => {
+          const list = items.filter((i) => i.category_id === cat.id);
+          const top = list.slice(0, 3);
+          const max = list[0]?.total_cents || 1;
+          return (
+            <section key={cat.id} className="mb-8">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-xl font-extrabold">
+                  {cat.emoji} {cat.name}
+                </h2>
+                <a
+                  href={`/c/${cat.slug}`}
+                  className="text-sm font-semibold text-amber-300"
+                >
+                  Ver todo →
+                </a>
+              </div>
+              {top.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
+                  Aún no hay nadie. ¡Sé el primero!
+                </p>
+              ) : (
+                <ol className="space-y-3">
+                  {top.map((item, i) => (
+                    <RankRow
+                      key={item.id}
+                      item={item}
+                      rank={i + 1}
+                      max={max}
+                      gap={i > 0 ? top[i - 1].total_cents - item.total_cents : undefined}
+                      onSupport={() => setSheet({ item, mode: "support" })}
+                      onShare={() => setSheet({ item, mode: "share" })}
+                    />
+                  ))}
+                </ol>
+              )}
+            </section>
+          );
+        })}
+      </main>
+ 
+      {sheet && (
+        <ItemSheet
+          item={sheet.item}
+          mode={sheet.mode}
+          onClose={() => setSheet(null)}
+        />
       )}
- 
-      <div className="mb-4 flex gap-2 overflow-x-auto">
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setActive(c.id)}
-            className={`whitespace-nowrap rounded-full border px-3 py-1 ${
-              active === c.id ? "bg-black text-white" : ""
-            }`}
-          >
-            {c.emoji} {c.name}
-          </button>
-        ))}
-      </div>
- 
-      <ol className="space-y-2">
-        {items.map((item, i) => (
-          <li key={item.id} className="rounded-lg border p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="mr-2 font-bold">#{i + 1}</span>
-                <a href={`/i/${item.slug}`} className="underline">{item.name}</a>
-                <div className="text-sm text-gray-500">{item.description}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">
-                  {(item.total_cents / 100).toFixed(2)} €
-                </div>
-                <div className="mt-1 flex justify-end gap-1">
-                  <button
-                    onClick={() => setSelected(item)}
-                    className="rounded bg-black px-3 py-1 text-sm text-white"
-                  >
-                    Apoyar
-                  </button>
-                  <button
-                    onClick={() => impulsar(item)}
-                    className="rounded border px-3 py-1 text-sm"
-                  >
-                    Impulsar
-                  </button>
-                </div>
-              </div>
-            </div>
- 
-            {shareItem?.id === item.id && (
-              <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
-                {links(item).map(([name, href]) => (
-                  <a
-                    key={name}
-                    href={href}
-                    aria-label={name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded border p-2 text-xl"
-                  >
-                    {icons[name]}
-                  </a>
-                ))}
-                {typeof navigator !== "undefined" && "share" in navigator && (
-                  <button
-                    onClick={() => compartirMas(item)}
-                    aria-label="Instagram"
-                    className="rounded border p-2 text-xl"
-                  >
-                    <FaInstagram />
-                  </button>
-                )}
-                <button
-                  onClick={copyLink}
-                  aria-label="Copiar enlace"
-                  className="rounded border p-2 text-xl"
-                >
-                  {copied ? "✓" : <FaLink />}
-                </button>
-              </div>
-            )}
- 
-            {selected?.id === item.id && (
-              <div className="mt-3 space-y-2 border-t pt-3">
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Tu nombre de usuario"
-                  maxLength={30}
-                  className="w-full rounded border p-2"
-                />
-                <input
-                  type="number"
-                  min="1"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full rounded border p-2"
-                />
-                {error && <div className="text-red-600">{error}</div>}
-                <button
-                  onClick={pay}
-                  disabled={loading || !username}
-                  className="w-full rounded bg-green-600 p-2 text-white disabled:opacity-50"
-                >
-                  {loading ? "..." : `Apoyar con ${amount} €`}
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ol>
-    </main>
+    </div>
   );
 }
  
