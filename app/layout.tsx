@@ -1,29 +1,31 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
+import Header from "@/components/Header";
+ 
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
+ 
 export const metadata: Metadata = {
-  title: "mifavorito: Quien es el número uno?",
-  description: "mifavorito: Quien es el número uno?",
+  title: "mifavorito: ¿Quién es el número uno?",
+  description: "Apoya a tu favorito desde 1 € y llévalo a la cima.",
 };
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
+ 
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="es">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
+ 

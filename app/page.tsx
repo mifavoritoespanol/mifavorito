@@ -46,9 +46,6 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-950 text-white">
       <main className="mx-auto max-w-xl px-4 pb-20">
         <header className="py-8 text-center">
-          <h1 className="bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-4xl font-extrabold text-transparent">
-            mifavorito
-          </h1>
           <p className="mt-3 text-lg font-semibold">¿Quién es el número uno?</p>
           <p className="mt-1 text-zinc-400">
             Apoya a tu favorito desde 1 € y llévalo a la cima.
