@@ -22,9 +22,10 @@ export async function POST(req: Request) {
     username: session.metadata?.username ?? "anónimo",
     amount_cents: session.amount_total ?? 0,
     stripe_session_id: session.id,
+    message: session.metadata?.message || null,
+    link_url: session.metadata?.link || null,
   });
  
-  // 23505 = paiement déjà enregistré (page rechargée) : pas une erreur
   if (error && error.code !== "23505") {
     return NextResponse.json({ ok: false }, { status: 500 });
   }

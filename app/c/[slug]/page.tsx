@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Category, Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
+import Podium from "@/components/Podium";
 import ItemSheet from "@/components/ItemSheet";
  
 function CategoryView() {
@@ -35,36 +36,51 @@ function CategoryView() {
     load();
   }, [slug]);
  
-  if (missing) return <main className="p-4 text-white">No encontrado.</main>;
+  if (missing) return <main className="p-4">No encontrado.</main>;
+ 
+  const allowPromo = category?.slug === "empresas";
   const max = items[0]?.total_cents || 1;
+  const top = items.slice(0, 3);
+  const rest = items.slice(3);
  
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-xl px-4 pb-20">
-        <a href="/" className="inline-block py-4 text-sm text-zinc-400">
-          ← mifavorito
-        </a>
-        <h1 className="mb-4 text-3xl font-extrabold">
+        <h1 className="py-4 text-3xl font-extrabold">
           {category?.emoji} {category?.name}
         </h1>
+ 
+        {top.length > 0 && (
+          <Podium
+            items={top}
+            onSupport={(item) => setSheet({ item, mode: "support", allowPromo })}
+          />
+        )}
+ 
         <ol className="space-y-3">
-          {items.map((item, i) => (
+          {rest.map((item, i) => (
             <RankRow
               key={item.id}
               item={item}
-              rank={i + 1}
+              rank={i + 4}
               max={max}
-              gap={i > 0 ? items[i - 1].total_cents - item.total_cents : undefined}
-              onSupport={() => setSheet({ item, mode: "support" })}
-              onShare={() => setSheet({ item, mode: "share" })}
+              gap={
+                (i === 0 ? top[2] : rest[i - 1])
+                  ? (i === 0 ? top[2] : rest[i - 1]).total_cents - item.total_cents
+                  : undefined
+              }
+              onSupport={() => setSheet({ item, mode: "support", allowPromo })}
+              onShare={() => setSheet({ item, mode: "share", allowPromo })}
             />
           ))}
         </ol>
       </main>
+ 
       {sheet && (
         <ItemSheet
           item={sheet.item}
           mode={sheet.mode}
+          allowPromo={sheet.allowPromo}
           onClose={() => setSheet(null)}
         />
       )}
@@ -74,7 +90,7 @@ function CategoryView() {
  
 export default function CategoryPage() {
   return (
-    <Suspense fallback={<main className="p-4 text-white">...</main>}>
+    <Suspense fallback={<main className="p-4">...</main>}>
       <CategoryView />
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import type { Item } from "@/lib/shared";
 import { eur, medals } from "@/lib/shared";
 import ItemSheet from "@/components/ItemSheet";
+import Avatar from "@/components/Avatar";
  
 type Supporter = { username: string; amount_cents: number };
 type Cat = { slug: string; name: string; emoji: string | null };
@@ -66,14 +67,16 @@ function ItemView() {
     load();
   }, [slug]);
  
-  if (missing) return <main className="p-4 text-white">No encontrado.</main>;
-  if (!item) return <main className="p-4 text-white">...</main>;
+  if (missing) return <main className="p-4">No encontrado.</main>;
+  if (!item) return <main className="p-4">...</main>;
+ 
+  const allowPromo = cat?.slug === "empresas";
  
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-xl px-4 pb-32">
         <div className="flex justify-between py-4 text-sm text-zinc-400">
-          <a href="/">← mifavorito</a>
+          <a href="/">← Inicio</a>
           {cat && (
             <a href={`/c/${cat.slug}`}>
               {cat.emoji} {cat.name}
@@ -81,22 +84,58 @@ function ItemView() {
           )}
         </div>
  
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-center">
-          <div className="text-6xl font-extrabold">
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-center shadow-sm">
+          <div className="flex justify-center">
+            <Avatar item={item} size={96} />
+          </div>
+          <div className="mt-3 text-4xl font-extrabold">
             {rank <= 3 ? medals[rank - 1] : `#${rank}`}
           </div>
-          <div className="mt-1 text-sm text-zinc-500">Puesto #{rank}</div>
-          <h1 className="mt-3 text-3xl font-extrabold">{item.name}</h1>
+          <div className="text-sm text-zinc-500">Puesto #{rank}</div>
+          <h1 className="mt-2 text-3xl font-extrabold">{item.name}</h1>
           <p className="mt-1 text-zinc-400">{item.description}</p>
           <div className="mt-4 bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-4xl font-extrabold text-transparent">
             {eur(item.total_cents)}
           </div>
-          <div className="mt-2 text-sm text-rose-300">
+          <div className="mt-2 text-sm text-rose-400">
             {gap !== null
               ? `Faltan ${eur(gap)} para subir al #${rank - 1}`
               : "¡Es el número uno! Ayúdalo a defender su puesto."}
           </div>
+          {item.image_url?.includes("wikimedia.org") && (
+            <div className="mt-3 text-[10px] text-zinc-500">Imagen: Wikipedia</div>
+          )}
         </div>
+ 
+        {item.top_username && (
+          <div className="mt-4 rounded-2xl border border-rose-300/40 bg-rose-300/10 p-4 text-center">
+            <div className="text-xs uppercase tracking-wide text-zinc-500">
+              👑 Mayor apoyo: {item.top_username}
+            </div>
+            {item.promo_text &&
+              (item.promo_url ? (
+                <a
+                  href={item.promo_url}
+                  target="_blank"
+                  rel="nofollow noopener sponsored"
+                  className="mt-1 block font-bold text-rose-400 underline"
+                >
+                  📣 {item.promo_text}
+                </a>
+              ) : (
+                <p className="mt-1 font-bold">📣 {item.promo_text}</p>
+              ))}
+          </div>
+        )}
+ 
+        {allowPromo && !item.promo_text && (
+          <button
+            onClick={() => setMode("support")}
+            className="mt-4 w-full rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-400"
+          >
+            📣 Sé el mayor apoyo y muestra tu mensaje aquí
+          </button>
+        )}
  
         {supporters.length > 0 && (
           <div className="mt-6">
@@ -118,17 +157,17 @@ function ItemView() {
         )}
       </main>
  
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-zinc-950/95 p-3 pb-5 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-zinc-950/90 p-3 pb-5 backdrop-blur">
         <div className="mx-auto flex max-w-xl gap-2">
           <button
             onClick={() => setMode("support")}
-            className="flex-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 py-3.5 text-lg font-extrabold text-black"
+            className="btn-apoyar flex-1 rounded-full py-3.5 text-lg"
           >
             Apoyar
           </button>
           <button
             onClick={() => setMode("share")}
-            className="rounded-full border border-zinc-700 px-6 font-semibold text-zinc-200"
+            className="rounded-full border border-zinc-700 bg-zinc-900 px-6 font-semibold"
           >
             Impulsar
           </button>
@@ -136,7 +175,12 @@ function ItemView() {
       </div>
  
       {mode && (
-        <ItemSheet item={item} mode={mode} onClose={() => setMode(null)} />
+        <ItemSheet
+          item={item}
+          mode={mode}
+          allowPromo={allowPromo}
+          onClose={() => setMode(null)}
+        />
       )}
     </div>
   );
@@ -144,9 +188,8 @@ function ItemView() {
  
 export default function ItemPage() {
   return (
-    <Suspense fallback={<main className="p-4 text-white">...</main>}>
+    <Suspense fallback={<main className="p-4">...</main>}>
       <ItemView />
     </Suspense>
   );
 }
- 

@@ -11,10 +11,18 @@ export type Item = {
   name: string;
   slug: string;
   description: string | null;
+  image_url: string | null;
   total_cents: number;
+  top_username: string | null;
+  promo_text: string | null;
+  promo_url: string | null;
 };
  
-export type SheetState = { item: Item; mode: "support" | "share" } | null;
+export type SheetState = {
+  item: Item;
+  mode: "support" | "share";
+  allowPromo: boolean;
+} | null;
  
 export const medals = ["🥇", "🥈", "🥉"];
  
@@ -24,4 +32,3 @@ export function eur(cents: number) {
     maximumFractionDigits: 2,
   })} €`;
 }
- 

@@ -11,22 +11,28 @@ import {
 } from "react-icons/fa6";
 import type { Item } from "@/lib/shared";
 import { eur } from "@/lib/shared";
+import Avatar from "@/components/Avatar";
  
 const AMOUNTS = [1, 5, 10, 25, 50];
-const gradient = "bg-gradient-to-r from-amber-400 to-rose-500 text-black";
+const field =
+  "w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-base text-white";
  
 export default function ItemSheet({
   item,
   mode,
+  allowPromo,
   onClose,
 }: {
   item: Item;
   mode: "support" | "share";
+  allowPromo: boolean;
   onClose: () => void;
 }) {
   const [amount, setAmount] = useState<number | "otra">(5);
   const [custom, setCustom] = useState("");
   const [username, setUsername] = useState("");
+  const [message, setMessage] = useState("");
+  const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -57,6 +63,8 @@ export default function ItemSheet({
           itemName: item.name,
           amount: value,
           username: username.trim(),
+          message: allowPromo ? message : "",
+          link: allowPromo ? link : "",
         }),
       });
       const data = await res.json();
@@ -88,19 +96,20 @@ export default function ItemSheet({
  
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl rounded-t-3xl border-t border-zinc-700 bg-zinc-900 p-5 pb-8 text-white"
+        className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-t-3xl border-t border-zinc-700 bg-zinc-900 p-5 pb-8 text-white"
         onClick={(ev) => ev.stopPropagation()}
       >
-        <div className="mb-4 flex items-start justify-between">
-          <div>
+        <div className="mb-4 flex items-center gap-3">
+          <Avatar item={item} size={44} />
+          <div className="min-w-0 flex-1">
             <div className="text-xs uppercase tracking-wide text-zinc-500">
               {mode === "support" ? "Apoyar a" : "Impulsar a"}
             </div>
-            <div className="text-xl font-extrabold">{item.name}</div>
+            <div className="truncate text-xl font-extrabold">{item.name}</div>
             <div className="text-sm text-amber-300">{eur(item.total_cents)}</div>
           </div>
           <button
@@ -120,7 +129,7 @@ export default function ItemSheet({
                   key={a}
                   onClick={() => setAmount(a)}
                   className={`rounded-xl py-3 text-lg font-bold ${
-                    amount === a ? gradient : "bg-zinc-800"
+                    amount === a ? "btn-apoyar" : "bg-zinc-800"
                   }`}
                 >
                   {a} €
@@ -129,7 +138,7 @@ export default function ItemSheet({
               <button
                 onClick={() => setAmount("otra")}
                 className={`rounded-xl py-3 text-lg font-bold ${
-                  amount === "otra" ? gradient : "bg-zinc-800"
+                  amount === "otra" ? "btn-apoyar" : "bg-zinc-800"
                 }`}
               >
                 Otra
@@ -144,7 +153,7 @@ export default function ItemSheet({
                 value={custom}
                 onChange={(ev) => setCustom(ev.target.value)}
                 placeholder="Importe en € (mínimo 1)"
-                className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-base text-white"
+                className={`${field} mt-3`}
               />
             )}
  
@@ -153,15 +162,38 @@ export default function ItemSheet({
               onChange={(ev) => setUsername(ev.target.value)}
               placeholder="Tu nombre de usuario"
               maxLength={30}
-              className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-base text-white"
+              className={`${field} mt-3`}
             />
+ 
+            {allowPromo && (
+              <div className="mt-3 rounded-xl border border-dashed border-zinc-700 p-3">
+                <div className="mb-2 text-xs text-zinc-400">
+                  📣 Si eres el mayor apoyo, tu mensaje aparecerá junto al
+                  nombre (opcional).
+                </div>
+                <input
+                  value={message}
+                  onChange={(ev) => setMessage(ev.target.value)}
+                  maxLength={100}
+                  placeholder="Tu mensaje o promo (100 caracteres)"
+                  className={field}
+                />
+                <input
+                  value={link}
+                  onChange={(ev) => setLink(ev.target.value)}
+                  inputMode="url"
+                  placeholder="https://tuweb.com"
+                  className={`${field} mt-2`}
+                />
+              </div>
+            )}
  
             {error && <div className="mt-2 text-rose-400">{error}</div>}
  
             <button
               onClick={pay}
               disabled={!valid || loading}
-              className={`mt-3 w-full rounded-full py-4 text-lg font-extrabold disabled:opacity-40 ${gradient}`}
+              className="btn-apoyar mt-3 w-full rounded-full py-4 text-lg"
             >
               {loading ? "..." : valid ? `Apoyar con ${value} €` : "Apoyar"}
             </button>

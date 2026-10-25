@@ -20,7 +20,7 @@ export default function Header() {
   const pill = (active: boolean) =>
     `whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-semibold ${
       active
-        ? "border-transparent bg-gradient-to-r from-amber-400 to-rose-500 text-black"
+        ? "btn-apoyar border-transparent"
         : "border-zinc-800 bg-zinc-900 text-zinc-300"
     }`;
  
