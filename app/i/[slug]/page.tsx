@@ -156,7 +156,7 @@ function ItemView() {
       </div>
 
       {mode && (
-        <ItemSheet item={item} mode={mode} allowPromo={allowPromo} onClose={() => setMode(null)} />
+        <ItemSheet item={item} mode={mode} allowPromo={allowPromo} onClose={() => setMode(null)} demoMode={process.env.NODE_ENV === "development"} />
       )}
     </div>
   );
