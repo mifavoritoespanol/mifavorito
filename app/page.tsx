@@ -5,19 +5,20 @@ import type { Category, Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
 import ItemSheet from "@/components/ItemSheet";
 import AddItemSheet from "@/components/AddItemSheet";
- 
+import ElectionHero from "@/components/ElectionHero";
+
 const tint: Record<string, string> = {
-  estrellas: "bg-amber-200/30",
-  paises: "bg-sky-300/25",
-  empresas: "bg-violet-300/25",
-  bebidas: "bg-teal-300/25",
-  comidas: "bg-orange-300/25",
-  equipos: "bg-lime-300/25",
+  estrellas: "bg-white/[0.045]",
+  paises: "bg-white/[0.035]",
+  empresas: "bg-white/[0.035]",
+  bebidas: "bg-white/[0.035]",
+  comidas: "bg-white/[0.035]",
+  equipos: "bg-white/[0.035]",
 };
- 
-const norm = (s: string) =>
-  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
- 
+
+const norm = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -26,19 +27,17 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [thanks, setThanks] = useState(false);
   const [refresh, setRefresh] = useState(0);
- 
+
   useEffect(() => {
-    const sessionId = new URLSearchParams(window.location.search).get(
-      "session_id"
-    );
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
     if (sessionId) {
-      setThanks(true);
       fetch("/api/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId }),
       }).then(() => {
-        setRefresh((r) => r + 1);
+        setThanks(true);
+        setRefresh((current) => current + 1);
         window.history.replaceState({}, "", "/");
       });
     }
@@ -48,7 +47,7 @@ export default function Home() {
       .order("sort")
       .then(({ data }) => setCategories(data ?? []));
   }, []);
- 
+
   useEffect(() => {
     supabase
       .from("items")
@@ -56,118 +55,128 @@ export default function Home() {
       .order("total_cents", { ascending: false })
       .then(({ data }) => setItems(data ?? []));
   }, [refresh]);
- 
+
   const byCat = useMemo(() => {
     const map = new Map<number, Item[]>();
-    for (const it of items) {
-      const list = map.get(it.category_id) ?? [];
-      list.push(it);
-      map.set(it.category_id, list);
+    for (const item of items) {
+      const list = map.get(item.category_id) ?? [];
+      list.push(item);
+      map.set(item.category_id, list);
     }
     return map;
   }, [items]);
- 
-  const slugOf = (id: number) => categories.find((c) => c.id === id)?.slug;
- 
+
+  const openCategory = categories.find((category) => category.slug === "estrellas");
+  const openItems = openCategory ? byCat.get(openCategory.id) ?? [] : [];
+  const openCategories = categories.filter((category) => category.slug === "estrellas");
+
   function renderRow(item: Item) {
     const list = byCat.get(item.category_id) ?? [];
-    const idx = list.findIndex((x) => x.id === item.id);
-    const allowPromo = slugOf(item.category_id) === "empresas";
+    const index = list.findIndex((entry) => entry.id === item.id);
     return (
       <RankRow
         key={item.id}
         item={item}
-        rank={idx + 1}
+        rank={index + 1}
         max={list[0]?.total_cents || 1}
-        gap={idx > 0 ? list[idx - 1].total_cents - item.total_cents : undefined}
-        onSupport={() => setSheet({ item, mode: "support", allowPromo })}
-        onShare={() => setSheet({ item, mode: "share", allowPromo })}
+        gap={index > 0 ? list[index - 1].total_cents - item.total_cents : undefined}
+        onSupport={() => setSheet({ item, mode: "support", allowPromo: false })}
+        onShare={() => setSheet({ item, mode: "share", allowPromo: false })}
       />
     );
   }
- 
+
   const query = norm(q.trim());
-  const results = query
-    ? items.filter((i) => norm(i.name).includes(query)).slice(0, 30)
-    : [];
- 
+  const results = query ? openItems.filter((item) => norm(item.name).includes(query)).slice(0, 30) : [];
+
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-xl px-4 pb-20">
-        <div className="py-6 text-center">
-          <p className="text-2xl font-extrabold">¿Quién es el número uno?</p>
-          <p className="mt-1 text-zinc-400">
-            Apoya a tu favorito desde 1 € y llévalo a la cima.
-          </p>
-        </div>
- 
+      <main className="mx-auto max-w-3xl px-4 pb-20 pt-6 sm:pt-8">
+        <ElectionHero />
+
         {thanks && (
-          <div className="mb-4 rounded-xl bg-emerald-500/15 p-3 text-emerald-300">
+          <div className="mb-5 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-emerald-200">
             ¡Gracias por tu apoyo! Ahora impúlsalo: compártelo.
           </div>
         )}
- 
-        <div className="mb-6 flex gap-2">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar estrella, país, empresa…"
-            className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-900 px-4 py-3 text-base"
-          />
-          <button
-            onClick={() => setAdding(q.trim())}
-            className="rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold"
-          >
-            + Añadir
-          </button>
-        </div>
- 
+
+        <section className="mb-8">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200/70">La elección</p>
+              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">Cantante del año en español</h2>
+            </div>
+            <span className="pb-0.5 text-xs text-zinc-500">Elige a tu favorito</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              placeholder="Buscar cantante…"
+              className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-900/90 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-amber-300/60 focus:outline-none"
+            />
+            <button
+              onClick={() => setAdding(q.trim())}
+              className="rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
+            >
+              + Cantante
+            </button>
+          </div>
+        </section>
+
         {query ? (
           <div>
             {results.length > 0 ? (
               <ol className="space-y-3">{results.map(renderRow)}</ol>
             ) : (
-              <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
-                No encontramos «{q.trim()}».
+              <p className="rounded-2xl border border-dashed border-zinc-700 p-5 text-center text-sm text-zinc-500">
+                No encontramos «{q.trim()}» entre los cantantes abiertos.
               </p>
             )}
             <button
               onClick={() => setAdding(q.trim())}
               className="btn-apoyar mt-4 w-full rounded-full py-3"
             >
-              ¿No está? Añade «{q.trim()}»
+              ¿No está? Propón «{q.trim()}»
             </button>
           </div>
         ) : (
-          categories.map((cat) => {
-            const top = (byCat.get(cat.id) ?? []).slice(0, 3);
+          categories.map((category) => {
+            const isOpen = category.slug === "estrellas";
+            const top = (byCat.get(category.id) ?? []).slice(0, 3);
             return (
               <section
-                key={cat.id}
-                className="mb-6 overflow-hidden rounded-3xl bg-zinc-800/40 ring-1 ring-zinc-700/60"
+                key={category.id}
+                className={`mb-5 overflow-hidden rounded-3xl border bg-gradient-to-b from-[#24292d]/95 via-[#1a1e22]/95 to-[#121518]/95 shadow-[0_22px_55px_rgba(0,0,0,0.58),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/[0.06] transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_28px_65px_rgba(0,0,0,0.62)] ${isOpen ? "border-zinc-600/80" : "border-zinc-800/90"}`}
               >
-                <div
-                  className={`flex items-center justify-between px-4 py-3 ${
-                    tint[cat.slug] ?? "bg-zinc-800/50"
-                  }`}
-                >
-                  <h2 className="text-lg font-extrabold">
-                    {cat.emoji} {cat.name}
+                <div className={`flex items-center justify-between border-b border-zinc-700/60 px-5 py-4 ${tint[category.slug] ?? "bg-white/[0.035]"}`}>
+                  <h2 className="text-lg font-extrabold text-white">
+                    {category.emoji} {isOpen ? "Cantantes" : category.name}
                   </h2>
-                  <a
-                    href={`/c/${cat.slug}`}
-                    className="text-sm font-semibold text-amber-300"
-                  >
-                    Ver podio →
-                  </a>
-                </div>
-                <div className="p-3">
-                  {top.length === 0 ? (
-                    <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
-                      Aún no hay nadie. ¡Sé el primero!
-                    </p>
+                  {isOpen ? (
+                    <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">
+                      Ver clasificación →
+                    </a>
                   ) : (
-                    <ol className="space-y-3">{top.map(renderRow)}</ol>
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">🔒 Próximamente</span>
+                  )}
+                </div>
+                <div className="relative p-3 sm:p-4">
+                  <div aria-hidden={!isOpen} inert={!isOpen} className={isOpen ? "" : "pointer-events-none select-none blur-[3px] opacity-45"}>
+                    {top.length === 0 ? (
+                      <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
+                        Aún no hay nadie. ¡Sé el primero!
+                      </p>
+                    ) : (
+                      <ol className="space-y-3">{top.map(renderRow)}</ol>
+                    )}
+                  </div>
+                  {!isOpen && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/45 backdrop-blur-[2px]">
+                      <span className="rounded-full border border-white/10 bg-zinc-950/85 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.18em] text-zinc-200 shadow-xl">
+                        🔒 Próximamente
+                      </span>
+                    </div>
                   )}
                 </div>
               </section>
@@ -175,7 +184,7 @@ export default function Home() {
           })
         )}
       </main>
- 
+
       {sheet && (
         <ItemSheet
           item={sheet.item}
@@ -186,7 +195,7 @@ export default function Home() {
       )}
       {adding !== null && (
         <AddItemSheet
-          categories={categories}
+          categories={openCategories}
           initialName={adding}
           onClose={() => setAdding(null)}
         />
@@ -194,4 +203,3 @@ export default function Home() {
     </div>
   );
 }
- 

@@ -6,15 +6,25 @@ import type { Category, Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
 import Podium from "@/components/Podium";
 import ItemSheet from "@/components/ItemSheet";
- 
+import ComingSoon from "@/components/ComingSoon";
+
+const CATEGORY_NAMES: Record<string, string> = {
+  paises: "Países",
+  empresas: "Empresas",
+  bebidas: "Bebidas",
+  comidas: "Comidas",
+  equipos: "Equipos",
+};
+
 function CategoryView() {
   const { slug } = useParams<{ slug: string }>();
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [missing, setMissing] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
- 
+
   useEffect(() => {
+    if (slug !== "estrellas") return;
     async function load() {
       const { data: cat } = await supabase
         .from("categories")
@@ -35,28 +45,31 @@ function CategoryView() {
     }
     load();
   }, [slug]);
- 
+
+  if (slug !== "estrellas") {
+    return <ComingSoon category={CATEGORY_NAMES[slug] ?? "Esta categoría"} />;
+  }
   if (missing) return <main className="p-4">No encontrado.</main>;
- 
-  const allowPromo = category?.slug === "empresas";
+
+  const allowPromo = false;
   const max = items[0]?.total_cents || 1;
   const top = items.slice(0, 3);
   const rest = items.slice(3);
- 
+
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-xl px-4 pb-20">
         <h1 className="py-4 text-3xl font-extrabold">
-          {category?.emoji} {category?.name}
+          {category?.emoji} Cantantes
         </h1>
- 
+
         {top.length > 0 && (
           <Podium
             items={top}
             onSupport={(item) => setSheet({ item, mode: "support", allowPromo })}
           />
         )}
- 
+
         <ol className="space-y-3">
           {rest.map((item, i) => (
             <RankRow
@@ -75,7 +88,7 @@ function CategoryView() {
           ))}
         </ol>
       </main>
- 
+
       {sheet && (
         <ItemSheet
           item={sheet.item}
@@ -87,7 +100,7 @@ function CategoryView() {
     </div>
   );
 }
- 
+
 export default function CategoryPage() {
   return (
     <Suspense fallback={<main className="p-4">...</main>}>
@@ -95,4 +108,3 @@ export default function CategoryPage() {
     </Suspense>
   );
 }
- 

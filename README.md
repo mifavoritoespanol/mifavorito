@@ -34,3 +34,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Election window and safe local tests
+
+The vote window defaults to 15 December 2026, 12:00 UTC through 30 December 2026, 12:00 UTC. Set `ELECTION_OPENS_AT` and `ELECTION_CLOSES_AT` to ISO 8601 UTC values in the deployment environment to change it. Checkout is rejected by the server outside this interval.
+
+To test the full voting flow locally, create a **separate Supabase staging project** with the same schema and use Stripe test mode. Copy the test-only variables from `.env.example` into `.env.local`, set both election test flags to `true`, and run `npm run dev`. The test override only works in development, requires a Stripe `sk_test_` key, and routes database reads/writes through the separate test project. Turn both flags off after testing. Never use production database credentials for load tests.

@@ -1,6 +1,6 @@
 "use client";
 import type { Item } from "@/lib/shared";
-import { eur } from "@/lib/shared";
+import { voteLabel } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
  
 const spots = [
@@ -31,7 +31,7 @@ export default function Podium({
               </div>
             </a>
             <div className="text-sm font-bold text-amber-300">
-              {eur(it.total_cents)}
+              {voteLabel(it.total_cents)}
             </div>
             <button
               onClick={() => onSupport(it)}
@@ -50,4 +50,3 @@ export default function Podium({
     </div>
   );
 }
- 

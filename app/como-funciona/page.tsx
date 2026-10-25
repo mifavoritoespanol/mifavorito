@@ -10,8 +10,7 @@ export default function ComoFunciona() {
           equipo… ¿Tu favorito no está? Añádelo.
         </li>
         <li className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-          <b>2. Apóyalo desde 1 €.</b> Cada euro suma a su total. El puesto lo
-          decide quien más apoya.
+          <b>2. Apóyalo desde 1 €.</b> 1 € = 1 voto. El puesto lo decide quien más votos recibe.
         </li>
         <li className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
           <b>3. Impúlsalo.</b> Compártelo con tus amigos para llevarlo al
