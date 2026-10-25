@@ -28,8 +28,8 @@ export default function CountryLeaderboard() {
   return (
     <section className="rounded-3xl border border-white/10 bg-zinc-950/70 p-5 shadow-2xl shadow-black/30 backdrop-blur-md">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/70">Marcador global</p>
-      <h2 className="mt-1 text-lg font-extrabold text-white">Puntos por país</h2>
-      <p className="mt-1 text-xs leading-5 text-zinc-400">Cada podio suma 5, 3 y 1 punto.</p>
+      <h2 className="mt-1 text-lg font-extrabold text-white">Clasificación global por país</h2>
+      <p className="mt-1 text-xs leading-5 text-zinc-400">Se suman los puntos obtenidos por cada país en los podios de todas las categorías: 1.º lugar, 5 puntos; 2.º, 3 puntos; 3.º, 1 punto.</p>
       {scores.length ? (
         <ol className="mt-4 space-y-2">
           {scores.slice(0, 10).map((score, index) => (
@@ -45,10 +45,10 @@ export default function CountryLeaderboard() {
         </ol>
       ) : (
         <p className="mt-4 rounded-xl bg-white/[0.04] p-3 text-xs leading-5 text-zinc-400">
-          Los primeros puntos se sumarán al cerrar la elección.
+          La clasificación se actualizará al cierre de cada elección, sumando los puntos del podio.
         </p>
       )}
-      <p className="mt-3 text-[10px] leading-4 text-zinc-500">Se acumulan los puntos de todas las categorías.</p>
     </section>
   );
 }
+
