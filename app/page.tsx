@@ -53,6 +53,7 @@ export default function Home() {
     supabase
       .from("items")
       .select("*")
+      .eq("status", "approved")
       .order("total_cents", { ascending: false })
       .then(({ data }) => setItems(data ?? []));
   }, [refresh]);
