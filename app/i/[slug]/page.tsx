@@ -30,6 +30,7 @@ function ItemView() {
         .from("items")
         .select("*")
         .eq("slug", slug)
+        .eq("status", "approved")
         .single();
       if (!data) {
         setMissing(true);
@@ -56,6 +57,7 @@ function ItemView() {
         .from("items")
         .select("*", { count: "exact", head: true })
         .eq("category_id", data.category_id)
+        .eq("status", "approved")
         .gt("total_cents", data.total_cents);
       setRank((count ?? 0) + 1);
 
@@ -63,6 +65,7 @@ function ItemView() {
         .from("items")
         .select("total_cents")
         .eq("category_id", data.category_id)
+        .eq("status", "approved")
         .gt("total_cents", data.total_cents)
         .order("total_cents", { ascending: true })
         .limit(1);
