@@ -105,7 +105,14 @@ function ItemView() {
           </div>
           <div className="text-sm text-zinc-500">Puesto #{rank}</div>
           <h1 className="mt-2 flex items-center justify-center gap-2 text-3xl font-extrabold">{item.country_code && <span title={countryName(item.country_code)}>{countryFlag(item.country_code)}</span>}{item.name}</h1>
-          <p className="mt-1 text-zinc-400">{item.description}</p>
+          {item.description && <p className="mt-1 text-zinc-400">{item.description}</p>}
+        <section className="mt-5 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 text-left">
+          <h2 className="text-lg font-bold">Información sobre {item.name}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">{item.info_summary || "La síntesis informativa de esta ficha está en preparación y será revisada antes de publicarse."}</p>
+          {item.grokipedia_url && <a href={item.grokipedia_url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-amber-200 underline underline-offset-4">Consultar la referencia en Grokipedia ↗</a>}
+          {item.wikipedia_url && <a href={item.wikipedia_url} target="_blank" rel="noreferrer" className="mt-2 block text-xs text-zinc-500 underline underline-offset-4">Ficha de referencia para verificar el nombre (Wikipedia) ↗</a>}
+          {item.info_summary && <p className="mt-3 text-[11px] text-zinc-500">Síntesis editorial informativa. Puede contener errores y no sustituye fuentes independientes.</p>}
+        </section>
           <div className="mt-4 bg-gradient-to-r from-rose-500 to-emerald-400 bg-clip-text text-4xl font-extrabold text-transparent">
             {voteLabel(item.total_cents)}
           </div>

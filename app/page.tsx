@@ -7,6 +7,7 @@ import ItemSheet from "@/components/ItemSheet";
 import AddItemSheet from "@/components/AddItemSheet";
 import ElectionHero from "@/components/ElectionHero";
 import CountryLeaderboard from "@/components/CountryLeaderboard";
+import { useLocalDemoMode } from "@/lib/demoMode";
 
 const tint: Record<string, string> = {
   estrellas: "bg-white/[0.045]",
@@ -28,6 +29,7 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [thanks, setThanks] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const demoMode = useLocalDemoMode();
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get("session_id");
@@ -69,11 +71,19 @@ export default function Home() {
   }, [items]);
 
   const openCategory = categories.find((category) => category.slug === "estrellas");
-  const openItems = openCategory ? byCat.get(openCategory.id) ?? [] : [];
+  const openItems = useMemo(() => openCategory ? byCat.get(openCategory.id) ?? [] : [], [byCat, openCategory]);
+  const displayedOpenItems = useMemo(() => {
+    if (!demoMode) return openItems;
+    const sampleVotes = [3_400_000, 2_700_000, 2_100_000];
+    return openItems.map((item, index) => ({
+      ...item,
+      total_cents: (index < 3 ? sampleVotes[index] : Math.min(Math.round(item.total_cents / 100), 2_000_000)) * 100,
+    })).sort((a, b) => b.total_cents - a.total_cents);
+  }, [demoMode, openItems]);
   const openCategories = categories.filter((category) => category.slug === "estrellas");
 
   function renderRow(item: Item) {
-    const list = byCat.get(item.category_id) ?? [];
+    const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
     const index = list.findIndex((entry) => entry.id === item.id);
     return (
       <RankRow
@@ -84,18 +94,20 @@ export default function Home() {
         gap={index > 0 ? list[index - 1].total_cents - item.total_cents : undefined}
         onSupport={() => setSheet({ item, mode: "support", allowPromo: false })}
         onShare={() => setSheet({ item, mode: "share", allowPromo: false })}
+        compactVotes
       />
     );
   }
 
   const query = norm(q.trim());
-  const results = query ? openItems.filter((item) => norm(item.name).includes(query)).slice(0, 30) : [];
+  const results = query ? displayedOpenItems.filter((item) => norm(item.name).includes(query)).slice(0, 30) : [];
 
   return (
     <div className="min-h-screen">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-20 pt-6 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <main className="mx-auto w-full max-w-3xl">
         <ElectionHero />
+        {demoMode && <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm font-bold text-amber-100">DEMO LOCAL — cifras de voto simuladas; no se modifican los votos reales.</div>}
 
         {thanks && (
           <div className="mb-5 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-emerald-200">
@@ -146,7 +158,7 @@ export default function Home() {
         ) : (
           categories.map((category) => {
             const isOpen = category.slug === "estrellas";
-            const top = (byCat.get(category.id) ?? []).slice(0, 3);
+            const top = (category.slug === "estrellas" ? displayedOpenItems : byCat.get(category.id) ?? []).slice(0, 3);
             return (
               <section
                 key={category.id}
