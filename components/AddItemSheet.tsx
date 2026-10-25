@@ -23,7 +23,7 @@ function normalizeWikipediaUrl(value: string) {
   }
 }
 
-export default function AddItemSheet({ categories, initialName, onClose }: { categories: Category[]; initialName: string; onClose: () => void }) {
+export default function AddItemSheet({ categories, initialName, onClose, demoMode = false }: { categories: Category[]; initialName: string; onClose: () => void; demoMode?: boolean }) {
   const category = categories[0];
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState("");
@@ -34,6 +34,10 @@ export default function AddItemSheet({ categories, initialName, onClose }: { cat
   const [error, setError] = useState("");
 
   async function submit() {
+    if (demoMode) {
+      setError('Modo demo local: esta propuesta no se guardará en Supabase.');
+      return;
+    }
     const normalizedWikipediaUrl = normalizeWikipediaUrl(wikipediaUrl);
     if (!name.trim() || !category || !countryCode || !normalizedWikipediaUrl) {
       setError("Añade un nombre, país y enlace válido de Wikipedia.");
@@ -80,8 +84,8 @@ export default function AddItemSheet({ categories, initialName, onClose }: { cat
             </label>
             <input value={description} onChange={(event) => setDescription(event.target.value)} maxLength={80} placeholder="Descripción corta (opcional)" className={field} />
             {error && <div role="alert" className="text-rose-400">{error}</div>}
-            <button onClick={submit} disabled={!name.trim() || !countryCode || !normalizeWikipediaUrl(wikipediaUrl) || loading || !category} className="btn-apoyar w-full rounded-full py-4 text-lg">
-              {loading ? "..." : "Enviar propuesta"}
+            <button onClick={submit} disabled={demoMode || !name.trim() || !countryCode || !normalizeWikipediaUrl(wikipediaUrl) || loading || !category} className="btn-apoyar w-full rounded-full py-4 text-lg">
+              {demoMode ? "Propuesta desactivada en demo" : loading ? "..." : "Enviar propuesta"}
             </button>
           </div>
         )}
@@ -89,3 +93,4 @@ export default function AddItemSheet({ categories, initialName, onClose }: { cat
     </div>
   );
 }
+
