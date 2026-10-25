@@ -38,6 +38,7 @@ CREATE POLICY "Country election points are public"
   ON public.country_election_points FOR SELECT
   TO anon, authenticated USING (true);
 GRANT SELECT ON public.country_election_points TO anon, authenticated;
+GRANT SELECT, INSERT ON public.country_election_points TO service_role;
 
 CREATE OR REPLACE FUNCTION public.finalize_country_election(
   p_election_key text,
@@ -45,7 +46,6 @@ CREATE OR REPLACE FUNCTION public.finalize_country_election(
 )
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
