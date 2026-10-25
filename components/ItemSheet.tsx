@@ -24,11 +24,13 @@ export default function ItemSheet({
   mode,
   allowPromo,
   onClose,
+  demoMode = false,
 }: {
   item: Item;
   mode: "support" | "share";
   allowPromo: boolean;
   onClose: () => void;
+  demoMode?: boolean;
 }) {
   const [votes, setVotes] = useState<number | "otra">(5);
   const [custom, setCustom] = useState("");
@@ -71,7 +73,7 @@ export default function ItemSheet({
   const canNativeShare = "share" in navigator;
 
   async function pay() {
-    if (!valid || election?.isOpen !== true) return;
+    if (demoMode || !valid || election?.isOpen !== true) return;
     setLoading(true);
     setError("");
     try {
@@ -132,18 +134,21 @@ export default function ItemSheet({
 
         {mode === "support" ? (
           <div>
+            {demoMode && <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] px-4 py-3 text-center text-sm text-amber-100">Demo local: ningún voto se cobra ni se guarda.</div>}
             <div className="mb-3 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.07] px-4 py-3 text-center">
               <div className="font-bold text-white">1 € = 1 voto</div>
               <div className="mt-0.5 text-xs text-zinc-400">Elige cuántos votos quieres dar.</div>
             </div>
             <div className={`mb-3 rounded-xl border px-4 py-3 text-center text-sm ${election?.isOpen ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-100" : "border-amber-300/20 bg-amber-300/[0.06] text-amber-100"}`} aria-live="polite">
-              {!election
-                ? "Comprobando el calendario de votación…"
-                : election.isOpen
-                  ? election.testMode
-                    ? "Modo de prueba local: los votos de prueba no son oficiales."
-                    : `Votación abierta hasta ${new Date(election.closesAt).toLocaleString("es-ES", {})}.`
-                  : `Votación cerrada. Abre el ${new Date(election.opensAt).toLocaleString("es-ES", {})}.`}
+              {demoMode
+                ? "Vista previa local · pago desactivado"
+                : !election
+                  ? "Comprobando el calendario de votación…"
+                  : election.isOpen
+                    ? election.testMode
+                      ? "Modo de prueba local: los votos de prueba no son oficiales."
+                      : `Votación abierta hasta ${new Date(election.closesAt).toLocaleString("es-ES", {})}.`
+                    : `Votación cerrada. Abre el ${new Date(election.opensAt).toLocaleString("es-ES", {})}.`}
             </div>
             <div className="grid grid-cols-3 gap-2">
               {VOTE_PRESETS.map((preset) => (
@@ -208,7 +213,7 @@ export default function ItemSheet({
 
             {error && <div className="mt-2 text-rose-400">{error}</div>}
 
-            <button onClick={pay} disabled={!valid || loading || election?.isOpen !== true} className="btn-apoyar mt-3 w-full rounded-full py-4 text-lg">
+            <button onClick={pay} disabled={demoMode || !valid || loading || election?.isOpen !== true} className="btn-apoyar mt-3 w-full rounded-full py-4 text-lg">
               {loading
                 ? "..."
                 : !election
@@ -220,7 +225,7 @@ export default function ItemSheet({
                       : "Elige los votos y escribe tu nombre"}
             </button>
             <p className="mt-2 text-center text-xs text-zinc-500">
-              Pago seguro con Stripe · Apple Pay y Google Pay disponibles
+              {demoMode ? "Demo local: no se procesa ningún pago." : "Pago seguro con Stripe · Apple Pay y Google Pay disponibles"}
             </p>
           </div>
         ) : (
@@ -247,3 +252,4 @@ export default function ItemSheet({
     </div>
   );
 }
+
