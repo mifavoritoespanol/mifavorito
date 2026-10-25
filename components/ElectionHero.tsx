@@ -64,10 +64,10 @@ export default function ElectionHero() {
           {status?.testMode ? "Modo de prueba local" : "Elección inaugural · 15 días"}
         </div>
         <h1 className="max-w-2xl text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
-          ¿Qué cantante se llevará el título del año en español?
+          ¿Qué artista musical se llevará el título del año en español?
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-300 sm:text-base">
-          Una elección dedicada a cantantes de música en español. {status && `La ventana cierra el ${formatUtc(status.closesAt)}`}
+          Una elección abierta a cantantes, DJ, raperos, productores, grupos y músicos de habla hispana. {status && `La ventana cierra el ${formatUtc(status.closesAt)}`}
         </p>
         <div className="mt-7 flex flex-wrap items-end justify-between gap-5">
           <div>
@@ -84,7 +84,7 @@ export default function ElectionHero() {
             </div>}
           </div>
           <Link href="/c/estrellas" className="btn-apoyar inline-flex items-center justify-center rounded-full px-6 py-3 text-sm">
-            Ver cantantes <span className="ml-2" aria-hidden="true">→</span>
+            Ver artistas <span className="ml-2" aria-hidden="true">→</span>
           </Link>
         </div>
       </div>

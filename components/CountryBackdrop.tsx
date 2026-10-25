@@ -18,7 +18,6 @@ const BACKGROUND_VIDEOS: Record<string, string> = {
   PY: "https://videos.pexels.com/video-files/36808131/15596993_3840_2160_30fps.mp4", // Asuncion
   UY: "https://videos.pexels.com/video-files/36844370/15610297_3840_2160_30fps.mp4", // Montevideo
   CR: "https://videos.pexels.com/video-files/31787656/13541577_3840_2160_24fps.mp4", // San Jose
-  US: "https://videos.pexels.com/video-files/4970456/4970456-uhd_3840_2160_30fps.mp4", // Statue of Liberty
 };
 
 export default function CountryBackdrop() {

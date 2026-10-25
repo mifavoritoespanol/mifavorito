@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import CountryBackdrop from "@/components/CountryBackdrop";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -12,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "mifavorito | Cantante del año en español",
+  title: "mifavorito | Artista musical del año en español",
   description: "El sitio que te da voz.",
 };
 
@@ -28,6 +29,7 @@ export default function RootLayout({
             <Header />
           </Suspense>
           {children}
+          <Footer />
         </div>
       </body>
     </html>

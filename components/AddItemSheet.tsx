@@ -63,7 +63,7 @@ export default function AddItemSheet({
           </button>
         </div>
 
-        <p className="-mt-2 mb-4 text-sm text-zinc-400">La elección actual es para cantantes. Indica el país de origen; revisaremos cada propuesta antes de publicarla.</p>
+        <p className="-mt-2 mb-4 text-sm text-zinc-400">La elección actual incluye cantantes, DJ, raperos, productores, grupos y otros artistas musicales. Indica el país asociado; revisaremos cada propuesta antes de publicarla.</p>
 
         {done ? (
           <p className="py-4 text-center">¡Gracias! Revisaremos la propuesta antes de publicarla. 🎉</p>
@@ -73,7 +73,7 @@ export default function AddItemSheet({
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={60}
-              placeholder="Nombre del cantante"
+              placeholder="Nombre del artista o grupo"
               className={field}
             />
             <label className="block space-y-2 text-sm text-zinc-300">

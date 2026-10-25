@@ -68,7 +68,7 @@ export default function Header() {
                 className="cursor-pointer appearance-none bg-transparent pr-0.5 outline-none"
               >
                 {COUNTRIES.map(({ code }) => (
-                  <option key={code} value={code} className="bg-zinc-900 text-white">{code}</option>
+                  <option key={code} value={code} className="bg-zinc-900 text-white">{countryFlag(code)} {code}</option>
                 ))}
               </select>
             </label>

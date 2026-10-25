@@ -106,7 +106,7 @@ export default function Home() {
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200/70">La elección</p>
-              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">Cantante del año en español</h2>
+              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">Artista musical del año en español</h2>
             </div>
             <span className="pb-0.5 text-xs text-zinc-500">Elige a tu favorito</span>
           </div>
@@ -114,14 +114,14 @@ export default function Home() {
             <input
               value={q}
               onChange={(event) => setQ(event.target.value)}
-              placeholder="Buscar cantante…"
+              placeholder="Buscar artista…"
               className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-900/90 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-amber-300/60 focus:outline-none"
             />
             <button
               onClick={() => setAdding(q.trim())}
               className="rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
             >
-              + Cantante
+              + Proponer artista
             </button>
           </div>
         </section>
@@ -132,7 +132,7 @@ export default function Home() {
               <ol className="space-y-3">{results.map(renderRow)}</ol>
             ) : (
               <p className="rounded-2xl border border-dashed border-zinc-700 p-5 text-center text-sm text-zinc-500">
-                No encontramos «{q.trim()}» entre los cantantes abiertos.
+                No encontramos «{q.trim()}» entre los artistas abiertos.
               </p>
             )}
             <button

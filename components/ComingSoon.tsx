@@ -14,7 +14,7 @@ export default function ComingSoon({ category }: { category?: string }) {
         {category ? `Próximamente: ${category}` : "Nuevas categorías llegarán pronto"}
       </h1>
       <p className="mt-3 max-w-md text-sm leading-6 text-zinc-400">
-        Ahora estamos preparando la elección de Cantante del año en español, dedicada a la música. Muy pronto podrás participar en más categorías.
+        Ahora estamos preparando la elección de Artista musical del año en español. Muy pronto podrás participar en más categorías.
       </p>
       <Link href="/" className="mt-7 rounded-full border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-amber-200/40 hover:text-white">
         Volver al inicio

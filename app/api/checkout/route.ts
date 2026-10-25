@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     .eq("id", numericItemId)
     .single();
   if (!item) {
-    return NextResponse.json({ error: "Cantante no encontrado" }, { status: 404 });
+    return NextResponse.json({ error: "Artista musical no encontrado" }, { status: 404 });
   }
 
   const { data: category } = await admin

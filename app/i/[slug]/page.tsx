@@ -90,7 +90,7 @@ function ItemView() {
       <main className="mx-auto max-w-xl px-4 pb-32">
         <div className="flex justify-between py-4 text-sm text-zinc-400">
           <Link href="/">← Inicio</Link>
-          {cat && <Link href={`/c/${cat.slug}`}>{cat.emoji} Cantantes</Link>}
+          {cat && <Link href={`/c/${cat.slug}`}>{cat.emoji} Artistas musicales</Link>}
         </div>
 
         <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-center shadow-sm">

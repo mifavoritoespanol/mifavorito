@@ -9,7 +9,7 @@ export const COUNTRIES = [
   { code: "SV", name: "El Salvador" }, { code: "NI", name: "Nicaragua" },
   { code: "CR", name: "Costa Rica" }, { code: "PA", name: "Panamá" },
   { code: "UY", name: "Uruguay" }, { code: "GQ", name: "Guinea Ecuatorial" },
-  { code: "US", name: "Estados Unidos" },
+  { code: "PR", name: "Puerto Rico" },
 ] as const;
 
 export function countryFlag(code: string) {
