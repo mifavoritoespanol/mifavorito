@@ -28,12 +28,12 @@ export default function CountryBackdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#090a0b]">
       {video && (
-        <video key={country} autoPlay muted loop playsInline preload="metadata" className="absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover opacity-55 grayscale">
+        <video key={country} autoPlay muted loop playsInline preload="metadata" className="absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover opacity-80 grayscale">
           <source src={video} type="video/mp4" />
         </video>
       )}
-      <div className="absolute inset-0 bg-black/45" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/45 to-black/65" />
+      <div className="absolute inset-0 bg-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/45" />
     </div>
   );
 }

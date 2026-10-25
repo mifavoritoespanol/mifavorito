@@ -151,7 +151,7 @@ export default function Home() {
               >
                 <div className={`flex items-center justify-between border-b border-zinc-700/60 px-5 py-4 ${tint[category.slug] ?? "bg-white/[0.035]"}`}>
                   <h2 className="text-lg font-extrabold text-white">
-                    {category.emoji} {isOpen ? "Cantantes" : category.name}
+                    {category.emoji} {isOpen ? "Música" : category.name}
                   </h2>
                   {isOpen ? (
                     <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">

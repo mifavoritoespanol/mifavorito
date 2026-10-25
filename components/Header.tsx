@@ -86,23 +86,18 @@ export default function Header() {
           </div>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-3">
-          <Link href="/" className={pill(path === "/")}>Todo</Link>
-          {categories.map((category) =>
-            category.slug === "estrellas" ? (
+          {categories.filter((category) => ["estrellas", "paises", "empresas"].includes(category.slug)).map((category) => {
+            const label = category.slug === "estrellas"
+              ? "Música"
+              : category.slug === "paises"
+                ? "Países"
+                : "Empresas";
+            return (
               <Link key={category.id} href={`/c/${category.slug}`} className={pill(path === `/c/${category.slug}`)}>
-                {category.emoji} Cantantes
+                {label}
               </Link>
-            ) : (
-              <span
-                key={category.id}
-                aria-disabled="true"
-                title="Próximamente"
-                className="whitespace-nowrap rounded-full border border-zinc-800/70 bg-zinc-900/40 px-3.5 py-1.5 text-sm font-semibold text-zinc-500/70"
-              >
-                🔒 {category.name}
-              </span>
-            )
-          )}
+            );
+          })}
         </div>
       </div>
     </header>

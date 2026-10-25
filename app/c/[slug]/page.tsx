@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import type { Category, Item, SheetState } from "@/lib/shared";
+import type { Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
 import Podium from "@/components/Podium";
 import ItemSheet from "@/components/ItemSheet";
@@ -18,7 +18,6 @@ const CATEGORY_NAMES: Record<string, string> = {
 
 function CategoryView() {
   const { slug } = useParams<{ slug: string }>();
-  const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [missing, setMissing] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
@@ -35,7 +34,6 @@ function CategoryView() {
         setMissing(true);
         return;
       }
-      setCategory(cat);
       const { data } = await supabase
         .from("items")
         .select("*")
@@ -60,7 +58,7 @@ function CategoryView() {
     <div className="min-h-screen">
       <main className="mx-auto max-w-xl px-4 pb-20">
         <h1 className="py-4 text-3xl font-extrabold">
-          {category?.emoji} Cantantes
+          🎵 Música
         </h1>
 
         {top.length > 0 && (
