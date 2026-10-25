@@ -199,7 +199,7 @@ export default function Home() {
           })
         )}
       </main>
-        <aside className="order-last self-start lg:sticky lg:top-36">
+        <aside className="order-first self-start lg:order-last lg:sticky lg:top-36">
           <CountryLeaderboard />
         </aside>
       </div>
@@ -222,3 +222,4 @@ export default function Home() {
     </div>
   );
 }
+
