@@ -33,7 +33,7 @@ export default function Home() {
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (sessionId) {
+    if (sessionId && process.env.NODE_ENV === "production") {
       fetch("/api/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -210,6 +210,7 @@ export default function Home() {
           mode={sheet.mode}
           allowPromo={sheet.allowPromo}
           onClose={() => setSheet(null)}
+          demoMode={process.env.NODE_ENV === "development"}
         />
       )}
       {adding !== null && (
@@ -217,6 +218,7 @@ export default function Home() {
           categories={openCategories}
           initialName={adding}
           onClose={() => setAdding(null)}
+          demoMode={process.env.NODE_ENV === "development"}
         />
       )}
     </div>
