@@ -106,7 +106,7 @@ export default function Home() {
     <div className="min-h-screen">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-20 pt-6 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <main className="mx-auto w-full max-w-3xl">
-        {demoMode && <div className="mb-6"><CountryLeaderboard /></div>}
+
         <ElectionHero />
         {demoMode && <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm font-bold text-amber-100">DEMO LOCAL — cifras de voto simuladas; no se modifican los votos reales.</div>}
 
@@ -200,11 +200,9 @@ export default function Home() {
           })
         )}
       </main>
-        {!demoMode && (
-          <aside className="order-first self-start lg:order-last lg:sticky lg:top-36">
-            <CountryLeaderboard />
-          </aside>
-        )}
+        <aside className="order-last self-start lg:sticky lg:top-36">
+          <CountryLeaderboard />
+        </aside>
       </div>
 
       {sheet && (
