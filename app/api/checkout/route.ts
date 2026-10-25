@@ -48,10 +48,10 @@ export async function POST(req: Request) {
   const admin = createAdminSupabase();
   const { data: item } = await admin
     .from("items")
-    .select("id, category_id, name")
+    .select("id, category_id, name, status")
     .eq("id", numericItemId)
     .single();
-  if (!item) {
+  if (!item || item.status !== "approved") {
     return NextResponse.json({ error: "Artista musical no encontrado" }, { status: 404 });
   }
 
