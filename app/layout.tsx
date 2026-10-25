@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -23,7 +24,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} relative min-h-screen antialiased`}>
         <CountryBackdrop />
         <div className="relative z-10 min-h-screen">
-          <Header />
+          <Suspense fallback={<header aria-hidden="true" className="sticky top-0 z-30 h-[108px] border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl" />}>
+            <Header />
+          </Suspense>
           {children}
         </div>
       </body>
