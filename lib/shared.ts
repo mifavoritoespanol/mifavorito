@@ -13,6 +13,7 @@ export type Item = {
   description: string | null;
   image_url: string | null;
   total_cents: number;
+  country_code: string | null;
   top_username: string | null;
   promo_text: string | null;
   promo_url: string | null;

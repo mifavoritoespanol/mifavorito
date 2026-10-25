@@ -6,6 +6,7 @@ import RankRow from "@/components/RankRow";
 import ItemSheet from "@/components/ItemSheet";
 import AddItemSheet from "@/components/AddItemSheet";
 import ElectionHero from "@/components/ElectionHero";
+import CountryLeaderboard from "@/components/CountryLeaderboard";
 
 const tint: Record<string, string> = {
   estrellas: "bg-white/[0.045]",
@@ -91,7 +92,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-3xl px-4 pb-20 pt-6 sm:pt-8">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-20 pt-6 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <main className="mx-auto w-full max-w-3xl">
         <ElectionHero />
 
         {thanks && (
@@ -184,6 +186,10 @@ export default function Home() {
           })
         )}
       </main>
+        <aside className="order-last self-start lg:sticky lg:top-36">
+          <CountryLeaderboard />
+        </aside>
+      </div>
 
       {sheet && (
         <ItemSheet

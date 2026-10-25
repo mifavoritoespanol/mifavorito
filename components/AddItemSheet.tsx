@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaXmark } from "react-icons/fa6";
 import { supabase } from "@/lib/supabase";
 import type { Category } from "@/lib/shared";
+import { COUNTRIES, countryFlag } from "@/lib/countries";
 
 const field =
   "w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-base text-white";
@@ -28,18 +29,20 @@ export default function AddItemSheet({
 }) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState("");
+  const [countryCode, setCountryCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
   async function submit() {
     const artistCategory = categories.find((category) => category.slug === "estrellas");
-    if (!name.trim() || !artistCategory) return;
+    if (!name.trim() || !artistCategory || !countryCode) return;
     setLoading(true);
     setError("");
     const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
     const { error: dbError } = await supabase.from("items").insert({
       category_id: artistCategory.id,
+      country_code: countryCode,
       name: name.trim().slice(0, 60),
       slug,
       description: description.trim().slice(0, 80) || null,
@@ -54,13 +57,13 @@ export default function AddItemSheet({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={onClose}>
       <div className="w-full max-w-xl rounded-t-3xl border-t border-zinc-700 bg-zinc-900 p-5 pb-8 text-white" onClick={(event) => event.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-xl font-extrabold">Proponer un cantante</div>
+          <div className="text-xl font-extrabold">Proponer una entrada de Música</div>
           <button onClick={onClose} aria-label="Cerrar" className="rounded-full bg-zinc-800 p-3">
             <FaXmark />
           </button>
         </div>
 
-        <p className="-mt-2 mb-4 text-sm text-zinc-400">Solo cantantes de música en español. Revisaremos cada propuesta antes de publicarla.</p>
+        <p className="-mt-2 mb-4 text-sm text-zinc-400">La elección actual es para cantantes. Indica el país de origen; revisaremos cada propuesta antes de publicarla.</p>
 
         {done ? (
           <p className="py-4 text-center">¡Gracias! Revisaremos la propuesta antes de publicarla. 🎉</p>
@@ -73,7 +76,15 @@ export default function AddItemSheet({
               placeholder="Nombre del cantante"
               className={field}
             />
-            <div className={field}>Categoría: {categories[0]?.emoji} Cantantes</div>
+            <label className="block space-y-2 text-sm text-zinc-300">
+              <span>País asociado</span>
+              <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} className={field} required>
+                <option value="">Selecciona un país</option>
+                {COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>{countryFlag(country.code)} {country.name}</option>
+                ))}
+              </select>
+            </label>
             <input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -84,7 +95,7 @@ export default function AddItemSheet({
             {error && <div className="text-rose-400">{error}</div>}
             <button
               onClick={submit}
-              disabled={!name.trim() || loading || categories.length === 0}
+              disabled={!name.trim() || !countryCode || loading || categories.length === 0}
               className="btn-apoyar w-full rounded-full py-4 text-lg"
             >
               {loading ? "..." : "Enviar propuesta"}

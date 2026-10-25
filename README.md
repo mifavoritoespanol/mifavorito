@@ -40,3 +40,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 The vote window defaults to 15 December 2026, 12:00 UTC through 30 December 2026, 12:00 UTC. Set `ELECTION_OPENS_AT` and `ELECTION_CLOSES_AT` to ISO 8601 UTC values in the deployment environment to change it. Checkout is rejected by the server outside this interval.
 
 To test the full voting flow locally, create a **separate Supabase staging project** with the same schema and use Stripe test mode. Copy the test-only variables from `.env.example` into `.env.local`, set both election test flags to `true`, and run `npm run dev`. The test override only works in development, requires a Stripe `sk_test_` key, and routes database reads/writes through the separate test project. Turn both flags off after testing. Never use production database credentials for load tests.
+
+## Country scorecard
+
+Each item can have one country of origin in `items.country_code`, using the two-letter codes in the country selector. Existing entries must be assigned a country in Supabase; new music proposals require a country selection and remain pending review.
+
+Before deploying the scorecard, run `supabase/migrations/20261025_country_points.sql` once in the Supabase SQL Editor. After an election closes, the scorecard snapshots each approved category's top three once: 5 points for first place, 3 for second, and 1 for third. Ties share the points for that place. The `ELECTION_CATEGORY_SLUG` environment variable identifies the category for the active election; historical points are retained across later election windows.

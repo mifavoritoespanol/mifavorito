@@ -5,16 +5,8 @@ import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { Category } from "@/lib/shared";
 import { getCountrySnapshot, getServerCountrySnapshot, subscribeToCountry } from "@/lib/country";
+import { COUNTRIES, countryFlag } from "@/lib/countries";
 import Logo from "@/components/Logo";
-
-const COUNTRIES = [
-  ["ES", "🇪🇸"], ["MX", "🇲🇽"], ["AR", "🇦🇷"], ["CO", "🇨🇴"],
-  ["CL", "🇨🇱"], ["PE", "🇵🇪"], ["VE", "🇻🇪"], ["EC", "🇪🇨"],
-  ["GT", "🇬🇹"], ["CU", "🇨🇺"], ["BO", "🇧🇴"], ["DO", "🇩🇴"],
-  ["HN", "🇭🇳"], ["PY", "🇵🇾"], ["SV", "🇸🇻"], ["NI", "🇳🇮"],
-  ["CR", "🇨🇷"], ["PA", "🇵🇦"], ["UY", "🇺🇾"], ["GQ", "🇬🇶"],
-  ["US", "🇺🇸"],
-] as const;
 
 export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -30,7 +22,7 @@ export default function Header() {
       .then(({ data }) => setCategories(data ?? []));
   }, []);
 
-  const selectedFlag = COUNTRIES.find(([code]) => code === country)?.[1] ?? "🇪🇸";
+  const selectedFlag = countryFlag(country);
   const pill = (active: boolean) =>
     `whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
       active
@@ -75,7 +67,7 @@ export default function Header() {
                 }}
                 className="cursor-pointer appearance-none bg-transparent pr-0.5 outline-none"
               >
-                {COUNTRIES.map(([code]) => (
+                {COUNTRIES.map(({ code }) => (
                   <option key={code} value={code} className="bg-zinc-900 text-white">{code}</option>
                 ))}
               </select>

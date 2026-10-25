@@ -7,6 +7,7 @@ import type { Item } from "@/lib/shared";
 import { voteLabel, medals } from "@/lib/shared";
 import ItemSheet from "@/components/ItemSheet";
 import Avatar from "@/components/Avatar";
+import { countryFlag, countryName } from "@/lib/countries";
 import ComingSoon from "@/components/ComingSoon";
 
 type Supporter = { username: string; amount_cents: number };
@@ -100,7 +101,7 @@ function ItemView() {
             {rank <= 3 ? medals[rank - 1] : `#${rank}`}
           </div>
           <div className="text-sm text-zinc-500">Puesto #{rank}</div>
-          <h1 className="mt-2 text-3xl font-extrabold">{item.name}</h1>
+          <h1 className="mt-2 flex items-center justify-center gap-2 text-3xl font-extrabold">{item.country_code && <span title={countryName(item.country_code)}>{countryFlag(item.country_code)}</span>}{item.name}</h1>
           <p className="mt-1 text-zinc-400">{item.description}</p>
           <div className="mt-4 bg-gradient-to-r from-rose-500 to-emerald-400 bg-clip-text text-4xl font-extrabold text-transparent">
             {voteLabel(item.total_cents)}

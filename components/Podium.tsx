@@ -2,6 +2,7 @@
 import type { Item } from "@/lib/shared";
 import { voteLabel } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
+import { countryFlag, countryName } from "@/lib/countries";
  
 const spots = [
   { idx: 1, label: "2", size: 68, ped: "h-14", color: "from-slate-200 to-slate-400" },
@@ -27,7 +28,7 @@ export default function Podium({
             <a href={`/i/${it.slug}`} className="flex flex-col items-center">
               <Avatar item={it} size={s.size} />
               <div className="mt-2 line-clamp-2 min-h-[2.5rem] text-center text-sm font-extrabold leading-tight">
-                {it.name}
+                {it.country_code && <span className="mr-1" title={countryName(it.country_code)} aria-label={countryName(it.country_code)}>{countryFlag(it.country_code)}</span>}{it.name}
               </div>
             </a>
             <div className="text-sm font-bold text-amber-300">

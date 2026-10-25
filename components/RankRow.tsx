@@ -3,6 +3,7 @@ import { FaShareNodes } from "react-icons/fa6";
 import type { Item } from "@/lib/shared";
 import { voteLabel, medals } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
+import { countryFlag, countryName } from "@/lib/countries";
 
 export default function RankRow({
   item,
@@ -31,7 +32,10 @@ export default function RankRow({
         <Avatar item={item} size={44} />
         <div className="min-w-0 flex-1">
           <a href={`/i/${item.slug}`} className="block">
-            <div className="truncate font-bold">{item.name}</div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate font-bold">{item.name}</span>
+              {item.country_code && <span title={countryName(item.country_code)} aria-label={countryName(item.country_code)}>{countryFlag(item.country_code)}</span>}
+            </div>
             <div className="truncate text-xs text-zinc-400">{item.description}</div>
           </a>
           {item.promo_text &&
