@@ -38,6 +38,7 @@ function CategoryView() {
         .from("items")
         .select("*")
         .eq("category_id", cat.id)
+        .eq("status", "approved")
         .order("total_cents", { ascending: false });
       setItems(data ?? []);
     }
