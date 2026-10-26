@@ -78,6 +78,7 @@ export default function Home() {
       .select("*")
       .eq("status", "approved")
       .order("total_cents", { ascending: false })
+      .order("name", { ascending: true })
       .then(({ data }) => setItems(data ?? []));
   }, [refresh]);
 
@@ -107,14 +108,15 @@ export default function Home() {
 
   function renderRow(item: Item) {
     const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
-    const index = list.findIndex((entry) => entry.id === item.id);
+    const rank = list.filter((entry) => entry.total_cents > item.total_cents).length + 1;
+    const above = list.find((entry) => entry.total_cents > item.total_cents);
     return (
       <RankRow
         key={item.id}
         item={item}
-        rank={index + 1}
+        rank={rank}
         max={list[0]?.total_cents || 1}
-        gap={index > 0 ? list[index - 1].total_cents - item.total_cents : undefined}
+        gap={above ? above.total_cents - item.total_cents : undefined}
         onSupport={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "support", allowPromo: false })}
         onShare={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "share", allowPromo: false })}
         compactVotes
@@ -184,7 +186,8 @@ export default function Home() {
             const isOpen = category.slug === activeCategorySlug;
             const rawElectionStatus = elections[category.slug] ?? null;
             const electionStatus = rawElectionStatus ? { ...rawElectionStatus, isOpen } : null;
-            const top = (category.slug === "estrellas" ? displayedOpenItems : byCat.get(category.id) ?? []).slice(0, 3);
+            const categoryItems = category.slug === "estrellas" && isOpen ? displayedOpenItems : byCat.get(category.id) ?? [];
+            const top = categoryItems.slice(0, 3);
             return (
               <div key={category.id}>
               <section
