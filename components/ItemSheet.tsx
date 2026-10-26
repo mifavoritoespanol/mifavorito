@@ -13,7 +13,7 @@ import type { Item } from "@/lib/shared";
 import { voteLabel } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
 
-type ElectionStatus = { opensAt: string; closesAt: string; isOpen: boolean; testMode: boolean };
+type ElectionStatus = { categorySlug: string; categoryName: string; opensAt: string; closesAt: string; isOpen: boolean; testMode: boolean; scheduled?: boolean };
 
 const VOTE_PRESETS = [1, 5, 10, 25, 50];
 const field =
@@ -46,7 +46,7 @@ export default function ItemSheet({
     let alive = true;
     const refresh = async () => {
       try {
-        const response = await fetch("/api/election-status", { cache: "no-store" });
+        const response = await fetch(`/api/election-status?category=${encodeURIComponent(item.category_slug ?? "estrellas")}`, { cache: "no-store" });
         if (response.ok) {
           const value = await response.json();
           if (alive) setElection(value);
@@ -56,7 +56,7 @@ export default function ItemSheet({
     void refresh();
     const timer = window.setInterval(refresh, 15000);
     return () => { alive = false; window.clearInterval(timer); };
-  }, []);
+  }, [item.category_slug]);
 
   const voteValue = votes === "otra" ? Number(custom) : votes;
   const valid = Number.isInteger(voteValue) && voteValue >= 1 && username.trim().length > 0;
@@ -144,7 +144,9 @@ export default function ItemSheet({
                 ? "Vista previa local · pago desactivado"
                 : !election
                   ? "Comprobando el calendario de votación…"
-                  : election.isOpen
+                  : election.scheduled === false
+                    ? "Esta categoría todavía no tiene una ventana de votación programada."
+                    : election.isOpen
                     ? election.testMode
                       ? "Modo de prueba local: los votos de prueba no son oficiales."
                       : `Votación abierta hasta ${new Date(election.closesAt).toLocaleString("es-ES", {})}.`
