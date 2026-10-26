@@ -5,7 +5,7 @@ import type { Category, Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
 import ItemSheet from "@/components/ItemSheet";
 import AddItemSheet from "@/components/AddItemSheet";
-import ElectionHero from "@/components/ElectionHero";
+import ElectionHero, { type ElectionStatus } from "@/components/ElectionHero";
 import CountryLeaderboard from "@/components/CountryLeaderboard";
 import { useLocalDemoMode } from "@/lib/demoMode";
 
@@ -18,11 +18,14 @@ const tint: Record<string, string> = {
   equipos: "bg-white/[0.035]",
 };
 
+const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, estrellas: 2 };
+
 const norm = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [election, setElection] = useState<ElectionStatus>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [adding, setAdding] = useState<string | null>(null);
@@ -32,6 +35,14 @@ export default function Home() {
   const demoMode = useLocalDemoMode();
 
   useEffect(() => {
+    let alive = true;
+    const refreshElection = () => fetch("/api/election-status", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((status) => { if (alive) setElection(status?.categorySlug ? status : null); })
+      .catch(() => { if (alive) setElection(null); });
+    void refreshElection();
+    const electionTimer = window.setInterval(refreshElection, 15000);
+
     const sessionId = new URLSearchParams(window.location.search).get("session_id");
     if (sessionId && process.env.NODE_ENV === "production") {
       fetch("/api/confirm", {
@@ -48,7 +59,9 @@ export default function Home() {
       .from("categories")
       .select("*")
       .order("sort")
-      .then(({ data }) => setCategories(data ?? []));
+      .then(({ data }) => setCategories([...(data ?? [])].sort((a, b) => (categoryPriority[a.slug] ?? 10) - (categoryPriority[b.slug] ?? 10))));
+
+    return () => { alive = false; window.clearInterval(electionTimer); };
   }, []);
 
   useEffect(() => {
@@ -70,17 +83,19 @@ export default function Home() {
     return map;
   }, [items]);
 
-  const openCategory = categories.find((category) => category.slug === "estrellas");
+  const activeCategorySlug = election?.categorySlug ?? null;
+  const orderedCategories = useMemo(() => [...categories].sort((a, b) => (categoryPriority[a.slug] ?? 10) - (categoryPriority[b.slug] ?? 10)), [categories]);
+  const openCategory = orderedCategories.find((category) => category.slug === activeCategorySlug);
   const openItems = useMemo(() => openCategory ? byCat.get(openCategory.id) ?? [] : [], [byCat, openCategory]);
   const displayedOpenItems = useMemo(() => {
-    if (!demoMode) return openItems;
+    if (!demoMode || openCategory?.slug !== "estrellas") return openItems;
     const sampleVotes = [3_400_000, 2_700_000, 2_100_000];
     return openItems.map((item, index) => ({
       ...item,
       total_cents: (index < 3 ? sampleVotes[index] : Math.min(Math.round(item.total_cents / 100), 2_000_000)) * 100,
     })).sort((a, b) => b.total_cents - a.total_cents);
-  }, [demoMode, openItems]);
-  const openCategories = categories.filter((category) => category.slug === "estrellas");
+  }, [demoMode, openCategory?.slug, openItems]);
+  const openCategories = orderedCategories.filter((category) => category.slug === activeCategorySlug);
 
   function renderRow(item: Item) {
     const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
@@ -92,8 +107,8 @@ export default function Home() {
         rank={index + 1}
         max={list[0]?.total_cents || 1}
         gap={index > 0 ? list[index - 1].total_cents - item.total_cents : undefined}
-        onSupport={() => setSheet({ item, mode: "support", allowPromo: false })}
-        onShare={() => setSheet({ item, mode: "share", allowPromo: false })}
+        onSupport={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "support", allowPromo: false })}
+        onShare={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "share", allowPromo: false })}
         compactVotes
       />
     );
@@ -107,7 +122,7 @@ export default function Home() {
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-20 pt-6 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <main className="mx-auto w-full max-w-3xl">
 
-        <ElectionHero />
+
         {demoMode && <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm font-bold text-amber-100">DEMO LOCAL — cifras de voto simuladas; no se modifican los votos reales.</div>}
 
         {thanks && (
@@ -119,8 +134,8 @@ export default function Home() {
         <section className="mb-8">
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200/70">La elección</p>
-              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">Artista musical del año en español</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200/70">La próxima elección</p>
+              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">{openCategory?.slug === "estrellas" ? "Artista musical del año en español" : openCategory?.name ?? "Elección"}</h2>
             </div>
             <span className="pb-0.5 text-xs text-zinc-500">Elige a tu favorito</span>
           </div>
@@ -128,14 +143,14 @@ export default function Home() {
             <input
               value={q}
               onChange={(event) => setQ(event.target.value)}
-              placeholder="Buscar artista…"
+              placeholder={openCategory?.slug === "estrellas" ? "Buscar artista…" : `Buscar ${openCategory?.name.toLowerCase() ?? "opción"}…`}
               className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-900/90 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-amber-300/60 focus:outline-none"
             />
             <button
               onClick={() => setAdding(q.trim())}
               className="rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
             >
-              + Proponer artista
+              + Proponer opción
             </button>
           </div>
         </section>
@@ -146,7 +161,7 @@ export default function Home() {
               <ol className="space-y-3">{results.map(renderRow)}</ol>
             ) : (
               <p className="rounded-2xl border border-dashed border-zinc-700 p-5 text-center text-sm text-zinc-500">
-                No encontramos «{q.trim()}» entre los artistas abiertos.
+                No encontramos «{q.trim()}» entre las opciones abiertas.
               </p>
             )}
             <button
@@ -157,17 +172,18 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          categories.map((category) => {
-            const isOpen = category.slug === "estrellas";
+          orderedCategories.map((category) => {
+            const isOpen = category.slug === activeCategorySlug;
             const top = (category.slug === "estrellas" ? displayedOpenItems : byCat.get(category.id) ?? []).slice(0, 3);
             return (
+              <div key={category.id}>
+              <ElectionHero status={election} categorySlug={category.slug} />
               <section
-                key={category.id}
                 className={`mb-5 overflow-hidden rounded-3xl border bg-gradient-to-b from-[#24292d]/95 via-[#1a1e22]/95 to-[#121518]/95 shadow-[0_22px_55px_rgba(0,0,0,0.58),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/[0.06] transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_28px_65px_rgba(0,0,0,0.62)] ${isOpen ? "border-zinc-600/80" : "border-zinc-800/90"}`}
               >
                 <div className={`flex items-center justify-between border-b border-zinc-700/60 px-5 py-4 ${tint[category.slug] ?? "bg-white/[0.035]"}`}>
                   <h2 className="text-lg font-extrabold text-white">
-                    {category.emoji} {isOpen ? "Música" : category.name}
+                    {category.emoji} {category.slug === "estrellas" ? "Música" : category.name}
                   </h2>
                   {isOpen ? (
                     <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">
@@ -196,6 +212,7 @@ export default function Home() {
                   )}
                 </div>
               </section>
+              </div>
             );
           })
         )}
