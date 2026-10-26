@@ -1,48 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# mifavorito
 
-## Getting Started
+**El sitio que te da voz.** Una plataforma de elecciones comunitarias para descubrir y apoyar favoritos vinculados a países: bebidas, comidas, música y más.
 
-First, run the development server:
+🌐 **Sitio:** [mifavorito.app](https://mifavorito.app) · **Stack:** Next.js 16, React 19, TypeScript, Supabase y Stripe.
+
+## Vista previa
+
+La tarjeta siguiente es la imagen Open Graph que genera el proyecto para los enlaces compartidos:
+
+![Tarjeta para compartir de mifavorito](https://mifavorito.app/opengraph-image)
+
+Explora [Bebidas](https://mifavorito.app/c/bebidas), [Comida](https://mifavorito.app/c/comidas), [Música](https://mifavorito.app/c/estrellas) y [Favoritos por país](https://mifavorito.app/pais/mx).
+
+> Para añadir capturas de pantalla completas de la interfaz, guarda imágenes actuales en `public/screenshots/` y enlázalas desde esta sección. La tarjeta de arriba es una imagen de marca para compartir, no una captura de pantalla de la página.
+
+## Funcionalidad
+
+- Elecciones con periodos de apertura y cierre programados por categoría.
+- Búsqueda y propuesta de opciones dentro de la página de la categoría cuando la votación está abierta.
+- Páginas por país con enlaces a categorías filtradas por el país elegido.
+- Fichas públicas de cada opción con su país, resumen y enlace de referencia cuando está disponible.
+- Marcador global de países por podios.
+- Checkout con Stripe y registro del consentimiento de inicio inmediato.
+- Metadatos SEO, Open Graph y Twitter Cards dinámicos para categorías, países y fichas.
+- Sitemap XML y `robots.txt` generados por Next.js.
+
+## Instalación local
+
+Requisitos: Node.js LTS y npm. Clona el repositorio y, desde su carpeta, ejecuta:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para cargar categorías y opciones, crea `.env.local` en la raíz con las credenciales públicas de tu proyecto Supabase:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+```
 
-## Learn More
+Consulta `.env.example` para las variables opcionales de calendario, Stripe y vista previa local. **No subas `.env.local` ni claves privadas al repositorio.** Las claves de Stripe y las credenciales de servicio de Supabase deben quedarse únicamente en el servidor.
 
-To learn more about Next.js, take a look at the following resources:
+Para previsualizar localmente Bebidas y Comida, añade a `.env.local`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```dotenv
+LOCAL_PREVIEW_CATEGORIES=bebidas,comidas
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Reinicia `npm run dev` después de modificar el archivo. En modo local, los pagos están desactivados y el envío de propuestas se simula sin guardar en Supabase.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Comando | Uso |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build optimizado de producción |
+| `npm run start` | Sirve el último build de producción |
+| `npm run lint` | Ejecuta ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estructura del proyecto
 
-## Election window and safe local tests
+```text
+app/
+├── api/                    # Checkout, confirmación, calendario y marcador
+├── c/[slug]/               # Página de categoría + metadata e imagen OG
+├── i/[slug]/               # Ficha pública + metadata e imagen OG
+├── pais/[code]/            # Página de país + metadata e imagen OG
+├── devoluciones/           # Política de devoluciones y desistimiento
+├── legal/                  # Anexos legales desplegables por país
+├── privacidad/             # Política de privacidad
+├── terminos/               # Términos de uso
+├── opengraph-image.tsx     # Imagen social de portada
+├── robots.ts               # Reglas para rastreadores
+├── sitemap.ts              # Sitemap XML
+├── layout.tsx              # Layout global y metadata base
+└── page.tsx                # Página de inicio
+components/                 # Header, fichas, rankings, modales y marcador
+lib/                        # Supabase, calendario, países, SEO y tarjetas OG
+public/                     # Assets estáticos y capturas del proyecto
+scripts/                    # Tareas auxiliares
+supabase/migrations/        # Cambios de esquema versionados
+```
 
-The vote window defaults to 15 December 2026, 12:00 UTC through 30 December 2026, 12:00 UTC. Set `ELECTION_OPENS_AT` and `ELECTION_CLOSES_AT` to ISO 8601 UTC values in the deployment environment to change it. Checkout is rejected by the server outside this interval.
+## SEO y enlaces compartidos
 
-To test the full voting flow locally, create a **separate Supabase staging project** with the same schema and use Stripe test mode. Copy the test-only variables from `.env.example` into `.env.local`, set both election test flags to `true`, and run `npm run dev`. The test override only works in development, requires a Stripe `sk_test_` key, and routes database reads/writes through the separate test project. Turn both flags off after testing. Never use production database credentials for load tests.
+Las rutas `/c/[slug]`, `/pais/[code]` y `/i/[slug]` definen títulos, descripciones, URL canónica, Open Graph y Twitter Card en el servidor. Sus imágenes PNG se generan en cada ruta con la convención `opengraph-image.tsx`. `app/sitemap.ts` incluye categorías, países y opciones públicas aprobadas; `app/robots.ts` publica la ubicación del sitemap.
 
-## Country scorecard
+Las URLs de país usan códigos de dos letras en minúsculas, por ejemplo `/pais/mx`. Desde una página de país, los enlaces a categorías conservan el país con `?pais=MX` y filtran las opciones mostradas.
 
-Each item can have one country of origin in `items.country_code`, using the two-letter codes in the country selector. Existing entries must be assigned a country in Supabase; new music proposals require a country selection and remain pending review.
+## Estado de los textos legales
 
-Supabase schema changes are tracked in `supabase/migrations/`. The country scorecard migration is `20261025135127_country_points.sql`; the security cleanup migrations follow it. Apply outstanding migrations before deploying app code. After an election closes, the scorecard snapshots each approved category's top three once: 5 points for first place, 3 for second, and 1 for third. Ties share the points for that place. The `ELECTION_CATEGORY_SLUG` environment variable identifies the category for the active election; historical points are retained across later election windows.
+Las páginas legales y sus anexos por país son borradores de trabajo. Antes de aceptar pagos, completa la razón social y el domicilio legal del operador y valida localmente las reglas de consumo, privacidad e impuestos.
