@@ -34,10 +34,6 @@ export default function AddItemSheet({ categories, initialName, onClose, demoMod
   const [error, setError] = useState("");
 
   async function submit() {
-    if (demoMode) {
-      setError('Modo demo local: esta propuesta no se guardará en Supabase.');
-      return;
-    }
     const normalizedWikipediaUrl = normalizeWikipediaUrl(wikipediaUrl);
     if (!name.trim() || !category || !countryCode || !normalizedWikipediaUrl) {
       setError("Añade un nombre, país y enlace válido de Wikipedia.");
@@ -45,6 +41,10 @@ export default function AddItemSheet({ categories, initialName, onClose, demoMod
     }
     setLoading(true);
     setError("");
+    if (demoMode) {
+      window.setTimeout(() => { setLoading(false); setDone(true); }, 350);
+      return;
+    }
     const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
     const { error: dbError } = await supabase.from("items").insert({
       category_id: category.id,
@@ -69,7 +69,7 @@ export default function AddItemSheet({ categories, initialName, onClose, demoMod
           <button onClick={onClose} aria-label="Cerrar" className="rounded-full bg-zinc-800 p-3"><FaXmark /></button>
         </div>
         {done ? (
-          <p className="py-4 text-center">¡Gracias! Revisaremos la propuesta antes de publicarla. 🎉</p>
+          <p className="py-4 text-center">{demoMode ? "Vista previa: propuesta simulada; no se guardó en ninguna base de datos." : "¡Gracias! Revisaremos la propuesta antes de publicarla. 🎉"}</p>
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-zinc-400">Indica un enlace a su ficha de Wikipedia para verificar el nombre y evitar duplicados. La propuesta será revisada antes de publicarse.</p>
@@ -84,8 +84,8 @@ export default function AddItemSheet({ categories, initialName, onClose, demoMod
             </label>
             <input value={description} onChange={(event) => setDescription(event.target.value)} maxLength={80} placeholder="Descripción corta (opcional)" className={field} />
             {error && <div role="alert" className="text-rose-400">{error}</div>}
-            <button onClick={submit} disabled={demoMode || !name.trim() || !countryCode || !normalizeWikipediaUrl(wikipediaUrl) || loading || !category} className="btn-apoyar w-full rounded-full py-4 text-lg">
-              {demoMode ? "Propuesta desactivada en demo" : loading ? "..." : "Enviar propuesta"}
+            <button onClick={submit} disabled={!name.trim() || !countryCode || !normalizeWikipediaUrl(wikipediaUrl) || loading || !category} className="btn-apoyar w-full rounded-full py-4 text-lg">
+              {loading ? "..." : demoMode ? "Simular envío (no se guarda)" : "Enviar propuesta"}
             </button>
           </div>
         )}
