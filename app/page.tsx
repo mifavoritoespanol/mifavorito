@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 import type { Category, Item, SheetState } from "@/lib/shared";
 import RankRow from "@/components/RankRow";
 import ItemSheet from "@/components/ItemSheet";
-import AddItemSheet from "@/components/AddItemSheet";
 import ElectionHero, { type ElectionStatus } from "@/components/ElectionHero";
 import CountryLeaderboard from "@/components/CountryLeaderboard";
 import { useLocalDemoMode } from "@/lib/demoMode";
@@ -21,16 +20,11 @@ const tint: Record<string, string> = {
 const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, estrellas: 2 };
 const SCHEDULED_CATEGORY_SLUGS = ["bebidas", "comidas", "estrellas"];
 
-const norm = (value: string) =>
-  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [elections, setElections] = useState<Record<string, ElectionStatus | null>>({});
   const [items, setItems] = useState<Item[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
-  const [adding, setAdding] = useState<string | null>(null);
-  const [q, setQ] = useState("");
   const [thanks, setThanks] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const demoMode = useLocalDemoMode();
@@ -104,7 +98,6 @@ export default function Home() {
       total_cents: (index < 3 ? sampleVotes[index] : Math.min(Math.round(item.total_cents / 100), 2_000_000)) * 100,
     })).sort((a, b) => b.total_cents - a.total_cents);
   }, [demoMode, openCategory?.slug, openItems]);
-  const openCategories = orderedCategories.filter((category) => category.slug === activeCategorySlug);
 
   function renderRow(item: Item) {
     const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
@@ -124,9 +117,6 @@ export default function Home() {
     );
   }
 
-  const query = norm(q.trim());
-  const results = query ? displayedOpenItems.filter((item) => norm(item.name).includes(query)).slice(0, 30) : [];
-
   return (
     <div className="min-h-screen">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-20 pt-6 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
@@ -141,51 +131,9 @@ export default function Home() {
           </div>
         )}
 
-        <section className="mb-8">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200/70">La próxima elección</p>
-              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">{openCategory?.slug === "estrellas" ? "Artista musical del año en español" : openCategory?.name ?? "Elección"}</h2>
-            </div>
-            <span className="pb-0.5 text-xs text-zinc-500">Elige a tu favorito</span>
-          </div>
-          <div className="flex gap-2">
-            <input
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              placeholder={openCategory?.slug === "estrellas" ? "Buscar artista…" : `Buscar ${openCategory?.name.toLowerCase() ?? "opción"}…`}
-              className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-900/90 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-amber-300/60 focus:outline-none"
-            />
-            <button
-              onClick={() => setAdding(q.trim())}
-              className="rounded-full border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
-            >
-              + Proponer opción
-            </button>
-          </div>
-        </section>
-
-        {query ? (
-          <div>
-            {results.length > 0 ? (
-              <ol className="space-y-3">{results.map(renderRow)}</ol>
-            ) : (
-              <p className="rounded-2xl border border-dashed border-zinc-700 p-5 text-center text-sm text-zinc-500">
-                No encontramos «{q.trim()}» entre las opciones abiertas.
-              </p>
-            )}
-            <button
-              onClick={() => setAdding(q.trim())}
-              className="btn-apoyar mt-4 w-full rounded-full py-3"
-            >
-              ¿No está? Propón «{q.trim()}»
-            </button>
-          </div>
-        ) : (
-          orderedCategories.map((category) => {
-            const isOpen = category.slug === activeCategorySlug;
-            const rawElectionStatus = elections[category.slug] ?? null;
-            const electionStatus = rawElectionStatus ? { ...rawElectionStatus, isOpen } : null;
+        {orderedCategories.map((category) => {
+            const electionStatus = elections[category.slug] ?? null;
+            const isOpen = electionStatus?.isOpen === true;
             const categoryItems = category.slug === "estrellas" && isOpen ? displayedOpenItems : byCat.get(category.id) ?? [];
             const top = categoryItems.slice(0, 3);
             return (
@@ -233,8 +181,7 @@ export default function Home() {
               </section>
               </div>
             );
-          })
-        )}
+          })}
       </main>
         <aside className="order-last self-start lg:sticky lg:top-36">
           <CountryLeaderboard />
@@ -250,14 +197,8 @@ export default function Home() {
           demoMode={process.env.NODE_ENV === "development"}
         />
       )}
-      {adding !== null && (
-        <AddItemSheet
-          categories={openCategories}
-          initialName={adding}
-          onClose={() => setAdding(null)}
-          demoMode={process.env.NODE_ENV === "development"}
-        />
-      )}
+
     </div>
   );
 }
+
