@@ -62,6 +62,12 @@ export function electionTestMode() {
     process.env.NEXT_PUBLIC_ELECTION_TEST_MODE === "true";
 }
 
+export function localElectionPreviewOpen(categorySlug: string) {
+  if (process.env.NODE_ENV !== "development") return false;
+  const slugs = (process.env.LOCAL_PREVIEW_CATEGORIES ?? "").split(",").map((value) => value.trim()).filter(Boolean);
+  return slugs.includes(categorySlug) && hasElectionSchedule(categorySlug);
+}
+
 export function isElectionOpen(now = new Date(), categorySlug = process.env.ELECTION_CATEGORY_SLUG || "estrellas") {
   if (!hasElectionSchedule(categorySlug)) return false;
   if (electionTestMode()) return true;
