@@ -19,13 +19,14 @@ const tint: Record<string, string> = {
 };
 
 const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, estrellas: 2 };
+const SCHEDULED_CATEGORY_SLUGS = ["bebidas", "comidas", "estrellas"];
 
 const norm = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [election, setElection] = useState<ElectionStatus>(null);
+  const [elections, setElections] = useState<Record<string, ElectionStatus | null>>({});
   const [items, setItems] = useState<Item[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [adding, setAdding] = useState<string | null>(null);
@@ -36,12 +37,19 @@ export default function Home() {
 
   useEffect(() => {
     let alive = true;
-    const refreshElection = () => fetch("/api/election-status", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((status) => { if (alive) setElection(status?.categorySlug ? status : null); })
-      .catch(() => { if (alive) setElection(null); });
-    void refreshElection();
-    const electionTimer = window.setInterval(refreshElection, 15000);
+    const refreshElections = async () => {
+      const entries = await Promise.all(SCHEDULED_CATEGORY_SLUGS.map(async (categorySlug) => {
+        try {
+          const response = await fetch("/api/election-status?category=" + categorySlug, { cache: "no-store" });
+          return [categorySlug, response.ok ? await response.json() : null] as const;
+        } catch {
+          return [categorySlug, null] as const;
+        }
+      }));
+      if (alive) setElections(Object.fromEntries(entries));
+    };
+    void refreshElections();
+    const electionTimer = window.setInterval(refreshElections, 15000);
 
     const sessionId = new URLSearchParams(window.location.search).get("session_id");
     if (sessionId && process.env.NODE_ENV === "production") {
@@ -83,7 +91,7 @@ export default function Home() {
     return map;
   }, [items]);
 
-  const activeCategorySlug = election?.categorySlug ?? null;
+  const activeCategorySlug = SCHEDULED_CATEGORY_SLUGS.find((slug) => elections[slug]?.isOpen) ?? null;
   const orderedCategories = useMemo(() => [...categories].sort((a, b) => (categoryPriority[a.slug] ?? 10) - (categoryPriority[b.slug] ?? 10)), [categories]);
   const openCategory = orderedCategories.find((category) => category.slug === activeCategorySlug);
   const openItems = useMemo(() => openCategory ? byCat.get(openCategory.id) ?? [] : [], [byCat, openCategory]);
@@ -174,10 +182,11 @@ export default function Home() {
         ) : (
           orderedCategories.map((category) => {
             const isOpen = category.slug === activeCategorySlug;
+            const rawElectionStatus = elections[category.slug] ?? null;
+            const electionStatus = rawElectionStatus ? { ...rawElectionStatus, isOpen } : null;
             const top = (category.slug === "estrellas" ? displayedOpenItems : byCat.get(category.id) ?? []).slice(0, 3);
             return (
               <div key={category.id}>
-              <ElectionHero status={election} categorySlug={category.slug} />
               <section
                 className={`mb-5 overflow-hidden rounded-3xl border bg-gradient-to-b from-[#24292d]/95 via-[#1a1e22]/95 to-[#121518]/95 shadow-[0_22px_55px_rgba(0,0,0,0.58),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/[0.06] transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_28px_65px_rgba(0,0,0,0.62)] ${isOpen ? "border-zinc-600/80" : "border-zinc-800/90"}`}
               >
@@ -186,9 +195,12 @@ export default function Home() {
                     {category.emoji} {category.slug === "estrellas" ? "Música" : category.name}
                   </h2>
                   {isOpen ? (
-                    <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">
-                      Ver clasificación →
-                    </a>
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                      <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">
+                        Ver clasificación →
+                      </a>
+                      <ElectionHero status={electionStatus} categorySlug={category.slug} compact />
+                    </div>
                   ) : (
                     <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">🔒 Próximamente</span>
                   )}
@@ -204,10 +216,14 @@ export default function Home() {
                     )}
                   </div>
                   {!isOpen && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/45 backdrop-blur-[2px]">
-                      <span className="rounded-full border border-white/10 bg-zinc-950/85 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.18em] text-zinc-200 shadow-xl">
-                        🔒 Próximamente
-                      </span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/45 p-3 backdrop-blur-[2px]">
+                      {SCHEDULED_CATEGORY_SLUGS.includes(category.slug) ? (
+                        <ElectionHero status={electionStatus} categorySlug={category.slug} />
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-zinc-950/85 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.18em] text-zinc-200 shadow-xl">
+                          🔒 Próximamente
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -242,4 +258,3 @@ export default function Home() {
     </div>
   );
 }
-
