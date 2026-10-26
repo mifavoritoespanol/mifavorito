@@ -68,7 +68,6 @@ function CategoryView() {
       <main className="mx-auto max-w-xl px-4 pb-20">
         <div className="flex items-center justify-between gap-3 py-4">
           <h1 className="text-3xl font-extrabold">{category?.emoji} {category?.slug === "estrellas" ? "Música" : category?.name}</h1>
-          <button disabled={!isOpen} onClick={() => setAdding(query.trim())} className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-200 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40">+ Proponer opción</button>
         </div>
         {isOpen && <div className="mb-4"><ElectionHero status={election} categorySlug={slug} compact /></div>}
         <div className="relative min-h-[45vh]">
@@ -101,8 +100,8 @@ function CategoryView() {
           )}
         </div>
       </main>
-      {isOpen && sheet && <ItemSheet item={sheet.item} mode={sheet.mode} allowPromo={sheet.allowPromo} onClose={() => setSheet(null)} />}
-      {isOpen && adding !== null && category && <AddItemSheet categories={[category]} initialName={adding} onClose={() => setAdding(null)} />}
+      {isOpen && sheet && <ItemSheet item={sheet.item} mode={sheet.mode} allowPromo={sheet.allowPromo} onClose={() => setSheet(null)} demoMode={process.env.NODE_ENV === "development"} />}
+      {isOpen && adding !== null && category && <AddItemSheet categories={[category]} initialName={adding} onClose={() => setAdding(null)} demoMode={process.env.NODE_ENV === "development"} />}
     </div>
   );
 }
@@ -110,3 +109,4 @@ function CategoryView() {
 export default function CategoryPage() {
   return <Suspense fallback={<main className="p-4">...</main>}><CategoryView /></Suspense>;
 }
+
