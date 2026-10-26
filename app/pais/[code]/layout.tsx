@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
+import { COUNTRIES } from "@/lib/countries";
 import { getCountrySeo, SITE_NAME, SITE_URL } from "@/lib/seo";
+
+export function generateStaticParams() {
+  return COUNTRIES.map((country) => ({ code: country.code.toLowerCase() }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
   const { code } = await params;
@@ -19,3 +24,4 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
 }
 
 export default function CountryLayout({ children }: Readonly<{ children: React.ReactNode }>) { return children; }
+
