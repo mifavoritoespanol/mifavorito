@@ -7,6 +7,7 @@ import type { Item } from "@/lib/shared";
 import { voteLabel, medals } from "@/lib/shared";
 import ItemSheet from "@/components/ItemSheet";
 import Avatar from "@/components/Avatar";
+import ElectionHero, { type ElectionStatus } from "@/components/ElectionHero";
 import { countryFlag, countryName } from "@/lib/countries";
 
 type Supporter = { username: string; amount_cents: number };
@@ -21,6 +22,8 @@ function ItemView() {
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [missing, setMissing] = useState(false);
   const [mode, setMode] = useState<"support" | "share" | null>(null);
+  const [election, setElection] = useState<ElectionStatus | null>(null);
+  const isOpen = election?.isOpen === true;
 
   useEffect(() => {
     async function load() {
@@ -76,6 +79,23 @@ function ItemView() {
     load();
   }, [slug]);
 
+  useEffect(() => {
+    if (!cat?.slug) return;
+    let alive = true;
+    const refresh = async () => {
+      try {
+        const response = await fetch("/api/election-status?category=" + encodeURIComponent(cat.slug), { cache: "no-store" });
+        if (response.ok) {
+          const status = await response.json();
+          if (alive) setElection(status);
+        }
+      } catch { /* Keep the item locked if the schedule cannot be checked. */ }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 15000);
+    return () => { alive = false; window.clearInterval(timer); };
+  }, [cat?.slug]);
+
   if (missing) return <main className="p-4">No encontrado.</main>;
   if (!item) return <main className="p-4">...</main>;
 
@@ -83,6 +103,7 @@ function ItemView() {
 
   return (
     <div className="min-h-screen">
+      <div inert={!isOpen} className={isOpen ? "" : "pointer-events-none select-none blur-[4px] opacity-45"}>
       <main className="mx-auto max-w-xl px-4 pb-32">
         <div className="flex justify-between py-4 text-sm text-zinc-400">
           <Link href="/">← Inicio</Link>
@@ -137,7 +158,7 @@ function ItemView() {
         )}
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-zinc-950/90 p-3 pb-5 backdrop-blur">
+      {isOpen && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-zinc-950/90 p-3 pb-5 backdrop-blur">
         <div className="mx-auto flex max-w-xl gap-2">
           <button onClick={() => setMode("support")} className="btn-apoyar flex-1 rounded-full py-3.5 text-lg">
             Apoyar
@@ -146,10 +167,16 @@ function ItemView() {
             Impulsar
           </button>
         </div>
-      </div>
+      </div>}
 
-      {mode && (
+      {isOpen && mode && (
         <ItemSheet item={item} mode={mode} allowPromo={allowPromo} onClose={() => setMode(null)} demoMode={process.env.NODE_ENV === "development"} />
+      )}
+      </div>
+      {!isOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-zinc-950/45 px-4 backdrop-blur-sm">
+          <ElectionHero status={election} categorySlug={cat?.slug ?? ""} />
+        </div>
       )}
     </div>
   );
@@ -162,4 +189,3 @@ export default function ItemPage() {
     </Suspense>
   );
 }
-
