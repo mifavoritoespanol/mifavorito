@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { electionTestMode, electionWindow, hasElectionSchedule, isElectionOpen, nextElection } from "@/lib/election";
+import { electionTestMode, electionWindow, hasElectionSchedule, isElectionOpen, localElectionPreviewOpen, nextElection } from "@/lib/election";
 
 type ElectionStatus = {
   categorySlug: string;
@@ -19,6 +19,7 @@ const CATEGORY_NAMES: Record<string, string> = {
 export async function GET(request: Request) {
   const requestedSlug = new URL(request.url).searchParams.get("category");
   let election: ElectionStatus | null;
+  const previewOpen = requestedSlug ? localElectionPreviewOpen(requestedSlug) : false;
 
   if (requestedSlug) {
     const scheduled = hasElectionSchedule(requestedSlug);
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
       categoryName: CATEGORY_NAMES[requestedSlug] ?? requestedSlug,
       opensAt,
       closesAt,
-      isOpen: scheduled && isElectionOpen(new Date(), requestedSlug),
+      isOpen: scheduled && (isElectionOpen(new Date(), requestedSlug) || previewOpen),
       scheduled,
     };
   } else {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
     opensAt: election.opensAt.toISOString(),
     closesAt: election.closesAt.toISOString(),
     isOpen: election.scheduled && (electionTestMode() || election.isOpen),
-    testMode: electionTestMode(),
+    testMode: electionTestMode() || previewOpen,
   }, { headers: { "Cache-Control": "no-store" } });
 }
 
