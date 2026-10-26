@@ -205,7 +205,7 @@ export default function Home() {
                     <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">🔒 Próximamente</span>
                   )}
                 </div>
-                <div className="relative p-3 sm:p-4">
+                <div className="relative min-h-[18rem] p-3 sm:p-4">
                   <div aria-hidden={!isOpen} inert={!isOpen} className={isOpen ? "" : "pointer-events-none select-none blur-[3px] opacity-45"}>
                     {top.length === 0 ? (
                       <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
