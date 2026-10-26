@@ -10,6 +10,7 @@ import {
   FaXmark,
 } from "react-icons/fa6";
 import type { Item } from "@/lib/shared";
+import Link from "next/link";
 import { voteLabel } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
 
@@ -35,6 +36,8 @@ export default function ItemSheet({
   const [votes, setVotes] = useState<number | "otra">(5);
   const [custom, setCustom] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [withdrawalConsent, setWithdrawalConsent] = useState(false);
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,7 +62,8 @@ export default function ItemSheet({
   }, [item.category_slug]);
 
   const voteValue = votes === "otra" ? Number(custom) : votes;
-  const valid = Number.isInteger(voteValue) && voteValue >= 1 && username.trim().length > 0;
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const valid = Number.isInteger(voteValue) && voteValue >= 1 && username.trim().length > 0 && validEmail && withdrawalConsent;
 
   const url = `${window.location.origin}/i/${item.slug}`;
   const text = `Estoy apoyando a ${item.name} en mifavorito. ¡Ayúdame a llevarlo al número uno!`;
@@ -84,6 +88,8 @@ export default function ItemSheet({
           itemId: item.id,
           votes: voteValue,
           username: username.trim(),
+          email: email.trim(),
+          withdrawalConsent,
           message: allowPromo ? message : "",
           link: allowPromo ? link : "",
         }),
@@ -191,6 +197,8 @@ export default function ItemSheet({
               className={`${field} mt-3`}
             />
 
+            <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Tu email para el recibo de Stripe" className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-base text-white mt-3" required />
+
             {allowPromo && (
               <div className="mt-3 rounded-xl border border-dashed border-zinc-700 p-3">
                 <div className="mb-2 text-xs text-zinc-400">
@@ -215,6 +223,8 @@ export default function ItemSheet({
 
             {error && <div className="mt-2 text-rose-400">{error}</div>}
 
+            <label className="mt-3 flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-950/60 p-3 text-sm leading-5 text-zinc-300"><input type="checkbox" checked={withdrawalConsent} onChange={(event) => setWithdrawalConsent(event.target.checked)} className="mt-1 size-4 accent-amber-300" /><span>Solicito que el servicio comience de inmediato y reconozco que perderé mi derecho de desistimiento una vez que el voto se haya contabilizado y el servicio se haya ejecutado íntegramente. He leído los <Link href="/terminos" className="underline">Términos de uso</Link>, la <Link href="/devoluciones" className="underline">Política de devoluciones</Link> y la <Link href="/privacidad" className="underline">Política de privacidad</Link>.</span></label>
+
             <button onClick={pay} disabled={demoMode || !valid || loading || election?.isOpen !== true} className="btn-apoyar mt-3 w-full rounded-full py-4 text-lg">
               {loading
                 ? "..."
@@ -224,8 +234,9 @@ export default function ItemSheet({
                     ? "Las votaciones están cerradas"
                     : valid
                       ? `Apoyar con ${voteValue} ${voteValue === 1 ? "voto" : "votos"} · ${voteValue} €`
-                      : "Elige los votos y escribe tu nombre"}
+                      : "Completa tus datos y acepta el inicio inmediato"}
             </button>
+            <p className="mt-2 text-center text-xs text-zinc-500">El recibo de Stripe se enviará a tu email e incluirá el consentimiento registrado. Contacto y reembolsos: <a href="mailto:contact@mifavorito.app" className="underline">contact@mifavorito.app</a>.</p>
             <p className="mt-2 text-center text-xs text-zinc-500">
               {demoMode ? "Demo local: no se procesa ningún pago." : "Pago seguro con Stripe · Apple Pay y Google Pay disponibles"}
             </p>
