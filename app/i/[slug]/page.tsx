@@ -8,7 +8,6 @@ import { voteLabel, medals } from "@/lib/shared";
 import ItemSheet from "@/components/ItemSheet";
 import Avatar from "@/components/Avatar";
 import { countryFlag, countryName } from "@/lib/countries";
-import ComingSoon from "@/components/ComingSoon";
 
 type Supporter = { username: string; amount_cents: number };
 type Cat = { slug: string; name: string; emoji: string | null };
@@ -21,7 +20,6 @@ function ItemView() {
   const [gap, setGap] = useState<number | null>(null);
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [missing, setMissing] = useState(false);
-  const [locked, setLocked] = useState(false);
   const [mode, setMode] = useState<"support" | "share" | null>(null);
 
   useEffect(() => {
@@ -47,11 +45,7 @@ function ItemView() {
         return;
       }
       setCat(category);
-      if (category.slug !== "estrellas") {
-        setLocked(true);
-        return;
-      }
-      setItem(data);
+      setItem({ ...data, category_slug: category.slug });
 
       const { count } = await supabase
         .from("items")
@@ -83,7 +77,6 @@ function ItemView() {
   }, [slug]);
 
   if (missing) return <main className="p-4">No encontrado.</main>;
-  if (locked) return <ComingSoon category={cat?.name ?? "Esta categoría"} />;
   if (!item) return <main className="p-4">...</main>;
 
   const allowPromo = false;
@@ -93,7 +86,7 @@ function ItemView() {
       <main className="mx-auto max-w-xl px-4 pb-32">
         <div className="flex justify-between py-4 text-sm text-zinc-400">
           <Link href="/">← Inicio</Link>
-          {cat && <Link href={`/c/${cat.slug}`}>{cat.emoji} Artistas musicales</Link>}
+          {cat && <Link href={`/c/${cat.slug}`}>{cat.emoji} {cat.slug === "estrellas" ? "Música" : cat.name}</Link>}
         </div>
 
         <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-center shadow-sm">
