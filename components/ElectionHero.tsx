@@ -8,7 +8,8 @@ export type ElectionStatus = {
   closesAt: string;
   isOpen: boolean;
   testMode: boolean;
-} | null;
+  scheduled: boolean;
+};
 
 type Remaining = { days: number; hours: number; minutes: number; seconds: number };
 
@@ -23,53 +24,83 @@ function getRemaining(target: number, now: number): Remaining {
 }
 function pad(value: number) { return String(value).padStart(2, "0"); }
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-ES", {
-    dateStyle: "long",
-    timeZone: "Europe/Madrid",
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat("es-ES", { dateStyle: "long", timeZone: "Europe/Madrid" }).format(new Date(value));
 }
 
-export default function ElectionHero({ status, categorySlug }: { status: ElectionStatus; categorySlug: string }) {
+export default function ElectionHero({ status, categorySlug, compact = false }: {
+  status: ElectionStatus | null;
+  categorySlug: string;
+  compact?: boolean;
+}) {
   const [now, setNow] = useState(0);
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  if (!status || status.categorySlug !== categorySlug) return null;
-
-  const open = status.isOpen;
-  const target = new Date(open ? status.closesAt : status.opensAt).getTime();
-  const remaining = now > 0 ? getRemaining(target, now) : null;
+  const scheduled = status?.scheduled !== false;
+  const opensAt = status ? new Date(status.opensAt).getTime() : null;
+  const closesAt = status ? new Date(status.closesAt).getTime() : null;
+  const open = status?.isOpen === true;
+  const closed = scheduled && closesAt !== null && now >= closesAt && !open;
+  const target = opensAt === null || closesAt === null ? null : (open ? closesAt : opensAt);
+  const remaining = target === null || closed || now === 0 ? null : getRemaining(target, now);
   const units: [string, string][] = remaining ? [
     [String(remaining.days), "días"], [pad(remaining.hours), "horas"],
     [pad(remaining.minutes), "min"], [pad(remaining.seconds), "seg"],
-  ] : [["--", "días"], ["--", "horas"], ["--", "min"], ["--", "seg"]];
+  ] : [];
+
+  const title = status?.categoryName ?? (categorySlug === "estrellas" ? "Música" : categorySlug);
+  const label = !status
+    ? "Calendario de votación"
+    : !scheduled
+      ? "Próximamente"
+      : closed
+        ? "Elección finalizada"
+        : status.testMode
+          ? "Modo de prueba local"
+          : open
+            ? "Votación abierta · cierra en"
+            : "Próxima votación · abre en";
+
+  if (compact) {
+    return (
+      <div className="flex flex-wrap items-center justify-end gap-2" aria-label={"Cuenta atrás de " + title}>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-100/70">{open ? "Cierra en" : closed ? "Cerrada" : "Abre en"}</span>
+        {units.length > 0 ? units.map(([value, name]) => (
+          <span key={name} className="rounded-md border border-white/10 bg-black/35 px-1.5 py-1 font-mono text-xs font-bold tabular-nums text-white">
+            {value}<span className="ml-1 font-sans text-[9px] font-medium text-zinc-400">{name}</span>
+          </span>
+        )) : <span className="text-xs text-zinc-400">{!scheduled ? "Próximamente" : closed ? "Cerrada" : "…"}</span>}
+      </div>
+    );
+  }
 
   return (
-    <section className="relative mb-3 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/45 px-4 py-4 shadow-xl shadow-black/20 backdrop-blur-sm sm:px-5">
-      <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-amber-300/[0.07] blur-3xl" />
-      <div className="relative flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-100/75">
-            <span className={`h-2 w-2 rounded-full ${open ? "bg-emerald-400" : "bg-amber-300"}`} />
-            {status.testMode ? "Modo de prueba local" : open ? "Votación abierta · cierra en" : "Próxima votación · abre en"}
-          </div>
-          <p className="mt-1 text-lg font-extrabold text-white">{status.categoryName}</p>
-          <p className="mt-0.5 text-xs text-zinc-400">
-            {open ? `Cierre: ${formatDate(status.closesAt)}` : `Apertura: ${formatDate(status.opensAt)} · cierre: ${formatDate(status.closesAt)}`}
+    <section className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-950/75 p-5 text-center shadow-2xl shadow-black/50 backdrop-blur-md sm:p-6">
+      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-100/75">{label}</div>
+      <h3 className="mt-2 text-xl font-black text-white">{title}</h3>
+      {!scheduled ? (
+        <p className="mt-2 text-sm text-zinc-300">La fecha de esta elección se anunciará próximamente.</p>
+      ) : closed ? (
+        <p className="mt-2 text-sm text-zinc-300">Esta ventana de votación ya terminó.</p>
+      ) : !status ? (
+        <p className="mt-2 text-sm text-zinc-300">Consultando las fechas de apertura y cierre…</p>
+      ) : (
+        <>
+          <p className="mt-1 text-xs text-zinc-400">
+            {open ? "Cierre: " + formatDate(status.closesAt) : "Apertura: " + formatDate(status.opensAt) + " · Cierre: " + formatDate(status.closesAt)}
           </p>
-        </div>
-        <div className="flex gap-1.5 sm:gap-2" aria-label={`Cuenta atrás de ${status.categoryName}`}>
-          {units.map(([value, label]) => (
-            <div key={label} className="min-w-[3.1rem] rounded-lg border border-white/10 bg-black/35 px-2 py-1.5 text-center sm:min-w-[3.7rem]">
-              <div className="font-mono text-lg font-bold tabular-nums text-white sm:text-xl">{value}</div>
-              <div className="text-[9px] uppercase tracking-wider text-zinc-500">{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+          <div className="mt-4 flex justify-center gap-1.5 sm:gap-2" aria-label={"Cuenta atrás de " + title}>
+            {(units.length ? units : [["--", "días"], ["--", "horas"], ["--", "min"], ["--", "seg"]] as [string, string][]).map(([value, name]) => (
+              <div key={name} className="min-w-[3.2rem] rounded-lg border border-white/10 bg-black/35 px-2 py-2 sm:min-w-[3.7rem]">
+                <div className="font-mono text-lg font-bold tabular-nums text-white sm:text-xl">{value}</div>
+                <div className="text-[9px] uppercase tracking-wider text-zinc-500">{name}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }
-
