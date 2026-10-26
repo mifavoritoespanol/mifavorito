@@ -28,7 +28,8 @@ function CategoryView() {
       const { data: cat } = await supabase.from("categories").select("*").eq("slug", slug).single();
       if (!cat) { setMissing(true); return; }
       setCategory(cat);
-      const { data } = await supabase.from("items").select("*").eq("category_id", cat.id).eq("status", "approved").order("total_cents", { ascending: false });
+      const { data } = await supabase.from("items").select("*").eq("category_id", cat.id).eq("status", "approved").order("total_cents", { ascending: false })
+      .order("name", { ascending: true });
       setItems((data ?? []).map((item) => ({ ...item, category_slug: slug })));
     }
     load();
@@ -80,8 +81,9 @@ function CategoryView() {
           {rest.length > 0 ? (
             <ol className="space-y-3">
               {rest.map((item) => {
-                const index = items.findIndex((entry) => entry.id === item.id);
-                return <RankRow key={item.id} item={item} rank={index + 1} max={max} gap={index > 0 ? items[index - 1].total_cents - item.total_cents : undefined} onSupport={() => setSheet({ item: { ...item, category_slug: slug }, mode: "support", allowPromo })} onShare={() => setSheet({ item: { ...item, category_slug: slug }, mode: "share", allowPromo })} />;
+                const rank = items.filter((entry) => entry.total_cents > item.total_cents).length + 1;
+                const above = items.find((entry) => entry.total_cents > item.total_cents);
+                return <RankRow key={item.id} item={item} rank={rank} max={max} gap={above ? above.total_cents - item.total_cents : undefined} onSupport={() => setSheet({ item: { ...item, category_slug: slug }, mode: "support", allowPromo })} onShare={() => setSheet({ item: { ...item, category_slug: slug }, mode: "share", allowPromo })} />;
               })}
             </ol>
           ) : query.trim() ? (
