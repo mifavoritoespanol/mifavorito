@@ -7,6 +7,7 @@ import type { Category } from "@/lib/shared";
 import { getCountrySnapshot, getServerCountrySnapshot, subscribeToCountry } from "@/lib/country";
 import { COUNTRIES } from "@/lib/countries";
 import Logo from "@/components/Logo";
+import { FaCircleInfo } from "react-icons/fa6";
 
 export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -41,6 +42,12 @@ export default function Header() {
             </span>
           </Link>
           <div className="flex shrink-0 items-center gap-3">
+            <nav className="shrink-0 text-sm font-semibold text-zinc-400">
+              <Link href="/como-funciona" className="flex items-center gap-1.5 whitespace-nowrap hover:text-white">
+                <FaCircleInfo aria-hidden="true" className="text-blue-400" />
+                <span>Cómo funciona</span>
+              </Link>
+            </nav>
             <details className="relative">
               <summary aria-label="Elegir país" className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/90 px-2.5 py-1.5 text-sm font-bold text-zinc-100 [&::-webkit-details-marker]:hidden">
                 {!flagFailed && (
@@ -89,9 +96,7 @@ export default function Header() {
                 ))}
               </div>
             </details>
-            <nav className="text-sm font-semibold text-zinc-400">
-              <Link href="/como-funciona" className="hover:text-white">Cómo funciona</Link>
-            </nav>
+
           </div>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-3">
