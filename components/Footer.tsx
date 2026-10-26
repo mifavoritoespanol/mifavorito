@@ -1,14 +1,3 @@
 import Link from "next/link";
+export default function Footer() { return <footer className="border-t border-white/10 bg-zinc-950/80 px-5 py-6 text-sm text-zinc-400"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4"><span>© 2026 mifavorito · <a className="underline decoration-zinc-600 underline-offset-4 hover:text-white" href="mailto:contact@mifavorito.app">contact@mifavorito.app</a></span><nav aria-label="Información legal" className="flex flex-wrap gap-x-4 gap-y-2"><Link href="/legal" className="underline decoration-zinc-600 underline-offset-4 hover:text-white">Países y reglas locales</Link><Link href="/terminos" className="underline decoration-zinc-600 underline-offset-4 hover:text-white">Términos de uso</Link><Link href="/devoluciones" className="underline decoration-zinc-600 underline-offset-4 hover:text-white">Devoluciones</Link><Link href="/privacidad" className="underline decoration-zinc-600 underline-offset-4 hover:text-white">Privacidad</Link></nav></div></footer>; }
 
-export default function Footer() {
-  return (
-    <footer className="border-t border-white/10 bg-zinc-950/80 px-5 py-6 text-sm text-zinc-400">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-        <span>© 2026 mifavorito</span>
-        <Link href="/legal" className="underline decoration-zinc-600 underline-offset-4 transition hover:text-white">
-          Información legal y condiciones
-        </Link>
-      </div>
-    </footer>
-  );
-}
