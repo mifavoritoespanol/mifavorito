@@ -8,6 +8,7 @@ export type Category = {
 export type Item = {
   id: number;
   category_id: number;
+  category_slug?: string;
   name: string;
   slug: string;
   description: string | null;
@@ -45,3 +46,4 @@ export function voteLabelCompact(cents: number) {
   const millions = Math.round(votes / 100_000) / 10;
   return `${millions.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M votos`;
 }
+
