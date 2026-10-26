@@ -52,37 +52,23 @@ export default function LegalPage() {
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-zinc-900/80 p-5 sm:p-6">
         <h2 className="text-lg font-bold text-white">Anexos por país</h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-300">Selecciona un territorio para consultar las notas locales aplicables a los votos pagados y a la información al consumidor.</p>
-        <nav aria-label="Anexos legales por país" className="mt-5 flex flex-wrap gap-2">
-          {COUNTRIES.map((country) => <a key={country.code} href={`#${slug(country.code)}`} className="rounded-full border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 hover:border-amber-200/40 hover:text-white">{country.name}</a>)}
-          {additionalRegions.map((region) => <a key={region.id} href={`#${region.id}`} className="rounded-full border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 hover:border-amber-200/40 hover:text-white">{region.name}</a>)}
-        </nav>
+        <p className="mt-2 text-sm leading-6 text-zinc-300">Abre una fila para consultar las reglas locales que debemos revisar antes de aceptar pagos.</p>
+        <div className="mt-5 overflow-x-auto"><table className="w-full border-collapse text-left text-sm">
+          <thead><tr className="border-b border-white/10 text-zinc-400"><th scope="col" className="px-3 py-3 font-semibold">País o región</th><th scope="col" className="px-3 py-3 font-semibold">Notas aplicables</th></tr></thead><tbody>
+          {COUNTRIES.map((country) => { const item = countryNotes[country.code]; return <tr id={slug(country.code)} key={country.code} className="scroll-mt-6 border-b border-white/[0.07] align-top"><th scope="row" className="whitespace-nowrap px-3 py-4 font-semibold text-white">{country.name}</th><td className="px-3 py-3"><details className="group"><summary className="flex cursor-pointer list-none items-center gap-3 text-zinc-300 marker:hidden"><span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full border border-white/15 text-amber-200 group-open:rotate-45">+</span><span>Ver condiciones locales</span></summary><div className="ml-9 mt-3 max-w-3xl leading-6 text-zinc-300">{item.note}<a className="mt-2 block text-amber-200 underline underline-offset-4 hover:text-amber-100" href={item.source} target="_blank" rel="noreferrer">{item.label} ↗</a></div></details></td></tr>; })}
+          {additionalRegions.map((region) => <tr id={region.id} key={region.id} className="scroll-mt-6 border-b border-white/[0.07] align-top"><th scope="row" className="whitespace-nowrap px-3 py-4 font-semibold text-white">{region.name}</th><td className="px-3 py-3"><details className="group"><summary className="flex cursor-pointer list-none items-center gap-3 text-zinc-300 marker:hidden"><span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full border border-white/15 text-amber-200 group-open:rotate-45">+</span><span>Ver condiciones locales</span></summary><div className="ml-9 mt-3 max-w-3xl leading-6 text-zinc-300">{region.note}<a className="mt-2 block text-amber-200 underline underline-offset-4 hover:text-amber-100" href={region.source} target="_blank" rel="noreferrer">{region.label} ↗</a></div></details></td></tr>)}
+          </tbody></table></div>
       </section>
-
-      <div className="mt-5 space-y-4">
-        {COUNTRIES.map((country) => {
-          const item = countryNotes[country.code];
-          return <section id={slug(country.code)} key={country.code} className="scroll-mt-6 rounded-2xl border border-white/10 bg-zinc-900/80 p-5 sm:p-6">
-            <h2 className="text-lg font-bold text-white">{country.name}</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-300">{item.note}</p>
-            <a className="mt-3 inline-block text-sm text-amber-200 underline underline-offset-4 hover:text-amber-100" href={item.source} target="_blank" rel="noreferrer">{item.label} ↗</a>
-          </section>;
-        })}
-        {additionalRegions.map((region) => <section id={region.id} key={region.id} className="scroll-mt-6 rounded-2xl border border-white/10 bg-zinc-900/80 p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-white">{region.name}</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">{region.note}</p>
-          <a className="mt-3 inline-block text-sm text-amber-200 underline underline-offset-4 hover:text-amber-100" href={region.source} target="_blank" rel="noreferrer">{region.label} ↗</a>
-        </section>)}
-      </div>
 
       <div className="mt-8 space-y-4">
         {[
-          { title: "Quién opera mifavorito", body: "La identidad legal del operador, su domicilio y los datos de contacto se añadirán antes de activar los pagos." },
+          { title: "Quién opera mifavorito", body: "Contacto: contact@mifavorito.app. La razón social y el domicilio del operador deben publicarse antes de activar pagos." },
           { title: "Cómo funciona la elección", body: "La elección reconoce a artistas musicales. No es una competición oficial ni está patrocinada por los artistas, sus representantes o las plataformas musicales. No se ofrece un premio." },
           { title: "Votos y pagos", body: "El modelo previsto es de 1 € por voto. Antes de cobrar se indicarán el precio total, el número de votos, el efecto de la compra y las condiciones de cancelación y reembolso. El pago no es una donación." },
-          { title: "Privacidad", body: "Antes del lanzamiento se publicarán el responsable del tratamiento, las finalidades, los proveedores, los plazos de conservación y la forma de ejercer los derechos sobre los datos." },
+          { title: "Privacidad", body: "Consulta la Política de privacidad. La identidad legal y el domicilio del responsable deben completarse antes de activar pagos." },
         ].map((section) => <section key={section.title} className="rounded-2xl border border-white/10 bg-zinc-900/80 p-5 sm:p-6"><h2 className="text-lg font-bold text-white">{section.title}</h2><p className="mt-2 text-sm leading-6 text-zinc-300">{section.body}</p></section>)}
       </div>
+      <nav aria-label="Documentos legales" className="mt-6 flex flex-wrap gap-4 text-sm text-amber-200 underline underline-offset-4"><Link href="/terminos">Términos de uso</Link><Link href="/devoluciones">Política de devoluciones y desistimiento</Link><Link href="/privacidad">Política de privacidad</Link></nav>
     </main>
   );
 }
