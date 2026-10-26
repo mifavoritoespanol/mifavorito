@@ -16,7 +16,10 @@ function cleanLink(value: unknown) {
 }
 
 export async function POST(req: Request) {
-  const { itemId, votes: rawVotes, username, message, link } = await req.json();
+  const { itemId, votes: rawVotes, username, message, link, email, withdrawalConsent } = await req.json();
+  if (process.env.NODE_ENV === "development") return NextResponse.json({ error: "Los pagos están desactivados en la vista previa local." }, { status: 403 });
+  if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || withdrawalConsent !== true) return NextResponse.json({ error: "Indica un email válido y acepta el inicio inmediato del servicio." }, { status: 400 });
+  const consentAt = new Date().toISOString();
 
   if (electionTestMode() && !process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
     return NextResponse.json({ error: "El modo de prueba requiere una clave Stripe de prueba (sk_test_)." }, { status: 503 });
@@ -68,6 +71,9 @@ export async function POST(req: Request) {
     itemId: String(item.id),
     votes: String(votes),
     username: String(username).trim().slice(0, 30),
+    withdrawal_consent: "accepted",
+    withdrawal_consent_at: consentAt,
+    withdrawal_consent_text_version: "es-v1-2026-10-26",
   };
   if (cleanMessage) metadata.message = cleanMessage;
   if (cleanUrl) metadata.link = cleanUrl;
@@ -87,7 +93,13 @@ export async function POST(req: Request) {
       },
     }],
     invoice_creation: { enabled: true },
+    customer_email: email.trim(),
     metadata,
+    payment_intent_data: {
+      receipt_email: email.trim(),
+      description: `Servicio digital: ${votes} ${votes === 1 ? "voto" : "votos"} para ${String(item.name).slice(0, 50)}. El usuario solicitó el inicio inmediato. El derecho de desistimiento solo se pierde cuando el servicio se haya ejecutado íntegramente.`,
+      metadata: { withdrawal_consent: "accepted", withdrawal_consent_at: consentAt, withdrawal_consent_text_version: "es-v1-2026-10-26" },
+    },
     success_url: `${origin}/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/`,
   });
