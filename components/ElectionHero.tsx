@@ -52,16 +52,16 @@ export default function ElectionHero({ status, categorySlug, compact = false }: 
 
   const title = status?.categoryName ?? (categorySlug === "estrellas" ? "Música" : categorySlug);
   const label = !status
-    ? "Calendario de votación"
+    ? "Calendario de rondas de apoyo"
     : !scheduled
       ? "Próximamente"
       : closed
-        ? "Elección finalizada"
+        ? "Ronda cerrada"
         : status.testMode
           ? "Modo de prueba local"
           : open
-            ? "Votación abierta · cierra en"
-            : "Próxima votación · abre en";
+            ? "Ronda abierta · cierra en"
+            : "Próxima ronda · abre en";
 
   if (compact) {
     return (
@@ -81,9 +81,9 @@ export default function ElectionHero({ status, categorySlug, compact = false }: 
       <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-100/75">{label}</div>
       <h3 className="mt-2 text-xl font-black text-white">{title}</h3>
       {!scheduled ? (
-        <p className="mt-2 text-sm text-zinc-300">La fecha de esta elección se anunciará próximamente.</p>
+        <p className="mt-2 text-sm text-zinc-300">La fecha de apertura de esta ronda se anunciará próximamente.</p>
       ) : closed ? (
-        <p className="mt-2 text-sm text-zinc-300">Esta ventana de votación ya terminó.</p>
+        <p className="mt-2 text-sm text-zinc-300">Esta ronda de apoyo ya terminó.</p>
       ) : !status ? (
         <p className="mt-2 text-sm text-zinc-300">Consultando las fechas de apertura y cierre…</p>
       ) : (
