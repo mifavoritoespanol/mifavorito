@@ -1,23 +1,11 @@
 import { NextResponse } from "next/server";
-import { createAdminSupabase } from "@/lib/supabaseAdmin";
+import { getAuthorizedAdminClient } from "@/lib/adminAuth";
 
 const NO_STORE = { "Cache-Control": "no-store, max-age=0" };
 
-async function getAuthorizedClient(request: Request) {
-  const emailAllowlist = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const token = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
-  if (!emailAllowlist || !token) return null;
-
-  const supabase = createAdminSupabase();
-  const { data, error } = await supabase.auth.getUser(token);
-  const email = data.user?.email?.trim().toLowerCase();
-  if (error || !email || email !== emailAllowlist) return null;
-  return supabase;
-}
-
 export async function GET(request: Request) {
   try {
-    const supabase = await getAuthorizedClient(request);
+    const supabase = await getAuthorizedAdminClient(request);
     if (!supabase) return NextResponse.json({ error: "Acceso no autorizado." }, { status: 401, headers: NO_STORE });
 
     const { data, error } = await supabase.from("items").select("*")
@@ -32,7 +20,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = await getAuthorizedClient(request);
+    const supabase = await getAuthorizedAdminClient(request);
     if (!supabase) return NextResponse.json({ error: "Acceso no autorizado." }, { status: 401, headers: NO_STORE });
 
     const body: unknown = await request.json();
