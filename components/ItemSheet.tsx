@@ -149,14 +149,14 @@ export default function ItemSheet({
               {demoMode
                 ? "Vista previa local · pago desactivado"
                 : !election
-                  ? "Comprobando el calendario de votación…"
+                  ? "Comprobando el calendario de rondas…"
                   : election.scheduled === false
-                    ? "Esta categoría todavía no tiene una ventana de votación programada."
+                    ? "Esta categoría todavía no tiene una ronda de apoyo programada."
                     : election.isOpen
                     ? election.testMode
                       ? "Modo de prueba local: los votos de prueba no son oficiales."
-                      : `Votación abierta hasta ${new Date(election.closesAt).toLocaleString("es-ES", {})}.`
-                    : `Votación cerrada. Abre el ${new Date(election.opensAt).toLocaleString("es-ES", {})}.`}
+                      : `Ronda abierta hasta ${new Date(election.closesAt).toLocaleString("es-ES", {})}.`
+                    : `Ronda cerrada. Abre el ${new Date(election.opensAt).toLocaleString("es-ES", {})}.`}
             </div>
             <div className="grid grid-cols-3 gap-2">
               {VOTE_PRESETS.map((preset) => (
@@ -229,9 +229,9 @@ export default function ItemSheet({
               {loading
                 ? "..."
                 : !election
-                  ? "Comprobando la votación…"
+                  ? "Comprobando la ronda de apoyo…"
                   : !election.isOpen
-                    ? "Las votaciones están cerradas"
+                    ? "Las rondas de apoyo están cerradas"
                     : valid
                       ? `Apoyar con ${voteValue} ${voteValue === 1 ? "voto" : "votos"} · ${voteValue} €`
                       : "Completa tus datos y acepta el inicio inmediato"}

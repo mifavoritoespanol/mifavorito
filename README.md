@@ -1,6 +1,6 @@
 # mifavorito
 
-**El sitio que te da voz.** Una plataforma de elecciones comunitarias para descubrir y apoyar favoritos vinculados a países: bebidas, comidas, música y más.
+**El sitio que te da voz.** Una plataforma de rondas de apoyo para descubrir y apoyar favoritos vinculados a países: bebidas, comidas, música y más.
 
 🌐 **Sitio:** [mifavorito.app](https://mifavorito.app) · **Stack:** Next.js 16, React 19, TypeScript, Supabase y Stripe.
 
@@ -16,11 +16,11 @@ Explora [Bebidas](https://mifavorito.app/c/bebidas), [Comida](https://mifavorito
 
 ## Funcionalidad
 
-- Elecciones con periodos de apertura y cierre programados por categoría.
-- Búsqueda y propuesta de opciones dentro de la página de la categoría cuando la votación está abierta.
+- Ediciones con rondas de apoyo y periodos de apertura y cierre programados por categoría.
+- Búsqueda y propuesta de opciones dentro de la página de la categoría cuando la ronda de apoyo está abierta.
 - Páginas por país con enlaces a categorías filtradas por el país elegido.
 - Fichas públicas de cada opción con su país, resumen y enlace de referencia cuando está disponible.
-- Marcador global de países por podios.
+- Medallero global de países: 1.º puesto = 5 puntos, 2.º = 3 y 3.º = 1 en cada edición.
 - Checkout con Stripe y registro del consentimiento de inicio inmediato.
 - Metadatos SEO, Open Graph y Twitter Cards dinámicos para categorías, países y fichas.
 - Sitemap XML y `robots.txt` generados por Next.js.
@@ -85,6 +85,18 @@ public/                     # Assets estáticos y capturas del proyecto
 scripts/                    # Tareas auxiliares
 supabase/migrations/        # Cambios de esquema versionados
 ```
+
+## Panel privado de moderación
+
+La ruta `/montana` permite revisar propuestas pendientes sin aparecer en la navegación ni en el sitemap. El acceso requiere iniciar sesión con Google y que el correo coincida exactamente (sin distinguir mayúsculas) con `ADMIN_EMAIL`. La API vuelve a comprobar la identidad en el servidor antes de usar la clave secreta de Supabase.
+
+Configuración necesaria antes de usarlo:
+
+1. En Supabase, habilita el proveedor Google en Authentication y configura el ID y secreto OAuth de Google Cloud. Añade `https://mifavorito.app/montana` y `http://localhost:3000/montana` a las URL de redirección permitidas (y la URL de Preview de Vercel si se va a probar allí).
+2. Configura `ADMIN_EMAIL` con tu correo de Google en las variables de entorno de Vercel (Preview y Production) y en `.env.local`.
+3. No añadas `SUPABASE_SECRET_KEY` a variables `NEXT_PUBLIC_*`; esta clave solo se consume desde la API del servidor.
+
+El nombre poco evidente de la ruta evita clics accidentales, pero no es una medida de seguridad: el inicio de sesión y la autorización del servidor son obligatorios.
 
 ## SEO y enlaces compartidos
 

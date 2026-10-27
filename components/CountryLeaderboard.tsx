@@ -33,8 +33,8 @@ export default function CountryLeaderboard() {
   const scores = demoMode ? LOCAL_DEMO_SCORES : liveScores;
   return (
     <section className="ml-auto max-w-[14rem] rounded-2xl border border-white/10 bg-zinc-950/70 p-3 shadow-xl shadow-black/30 backdrop-blur-md">
-      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-200/70">Marcador global</p>
-      <h2 className="mt-0.5 text-sm font-extrabold leading-tight text-white">Clasificación por país</h2>
+      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-200/70">Medallero global</p>
+      <h2 className="mt-0.5 text-sm font-extrabold leading-tight text-white">Puntos por país</h2>
       {scores.length ? (
         <ol className="mt-2 space-y-1">
           {scores.slice(0, 10).map((score, index) => (
@@ -55,7 +55,7 @@ export default function CountryLeaderboard() {
           ))}
         </ol>
       ) : (
-        <p className="mt-2 text-[10px] leading-4 text-zinc-400">El marcador aparecerá al cerrarse las elecciones.</p>
+        <p className="mt-2 text-[10px] leading-4 text-zinc-400">El medallero se actualizará al cierre de cada edición.</p>
       )}
       <p className="mt-2 border-t border-white/10 pt-2 text-[9px] leading-4 text-zinc-500">
         Suma de podios: 1.º = 5 puntos, 2.º = 3, 3.º = 1, en todas las categorías.
