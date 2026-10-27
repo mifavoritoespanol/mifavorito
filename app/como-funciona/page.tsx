@@ -4,19 +4,19 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Por qué y cómo funciona",
   description:
-    "Por qué existe mifavorito: elecciones mensuales, un euro por voto y apoyo para los favoritos de cada país.",
+    "Por qué existe mifavorito: ediciones mensuales, un euro por voto y apoyo para los favoritos de cada país.",
 };
 
 const steps = [
   {
     number: "01",
-    title: "Una elección cada mes",
-    body: "Cada votación tiene fechas claras de apertura y cierre. Las categorías van rotando y podrán volver: los gustos y las tendencias cambian.",
+    title: "Una edición cada mes",
+    body: "Cada ronda de apoyo tiene fechas claras de apertura y cierre. Las categorías van rotando y podrán volver: los gustos y las tendencias cambian.",
   },
   {
     number: "02",
     title: "Elige tu favorito",
-    body: "Busca la opción que quieres apoyar y participa durante la ventana de votación. No necesitas crear una cuenta.",
+    body: "Busca la opción que quieres apoyar y participa durante la ronda de apoyo. No necesitas crear una cuenta.",
   },
   {
     number: "03",
@@ -36,7 +36,7 @@ export default function ComoFunciona() {
         <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
           En todos los países y regiones hay algo que se siente único: una bebida,
           una comida, un artista musical… y la convicción de que lo nuestro es lo
-          mejor. mifavorito convierte ese orgullo en elecciones abiertas, con
+          mejor. mifavorito convierte ese orgullo en rondas de apoyo abiertas, con
           fechas de inicio y de cierre.
         </p>
       </section>
@@ -61,7 +61,7 @@ export default function ComoFunciona() {
 
       <section className="rounded-3xl border border-white/10 bg-zinc-950/75 p-6 backdrop-blur-xl sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200/75">Cómo funciona</p>
-        <h2 className="mt-2 text-2xl font-extrabold text-white">Tres pasos para apoyar tu favorito</h2>
+        <h2 className="mt-2 text-2xl font-extrabold text-white">Tres pasos para apoyar a tu favorito</h2>
         <ol className="mt-5 grid gap-3 sm:grid-cols-3">
           {steps.map((step) => (
             <li key={step.number} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
@@ -75,17 +75,17 @@ export default function ComoFunciona() {
 
       <section className="grid gap-4 sm:grid-cols-2">
         <article className="rounded-3xl border border-white/10 bg-zinc-950/75 p-6 backdrop-blur-xl">
-          <h2 className="text-xl font-extrabold text-white">Sin anuncios que condicionen la elección</h2>
+          <h2 className="text-xl font-extrabold text-white">Sin anuncios que condicionen la ronda</h2>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
-            La votación es de pago para ayudar a mantener el sitio sin publicidad y
+            La ronda es de pago para ayudar a mantener el sitio sin publicidad y
             evitar que los anuncios influyan en qué opciones reciben visibilidad.
           </p>
         </article>
         <article className="rounded-3xl border border-white/10 bg-zinc-950/75 p-6 backdrop-blur-xl">
-          <h2 className="text-xl font-extrabold text-white">Promover a los ganadores</h2>
+          <h2 className="text-xl font-extrabold text-white">Promover a quienes más apoyo reciben</h2>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
             Los ingresos contribuyen al mantenimiento de mifavorito y a dar
-            visibilidad internacional a los ganadores de cada elección.
+            visibilidad internacional a quienes quedan en lo más alto de cada edición.
           </p>
         </article>
       </section>
@@ -94,7 +94,7 @@ export default function ComoFunciona() {
         <h2 className="text-2xl font-black text-white">¿Qué te gusta y qué quieres promover?</h2>
         <p className="mx-auto mt-3 max-w-xl leading-7 text-zinc-300">
           Cada mes habrá una nueva oportunidad para apoyar lo que representa a tu
-          país o región. Elige, participa y compártelo con los tuyos.
+          país o región. Elige, apoya y compártelo con los tuyos.
         </p>
         <Link href="/" className="btn-apoyar mt-6 inline-flex rounded-full px-6 py-3 font-bold">
           Ver mifavorito
