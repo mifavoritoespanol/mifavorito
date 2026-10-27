@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "mifavorito | El sitio que te da voz", template: "%s | mifavorito" },
-  description: "Apoya tus favoritos y participa en las elecciones de mifavorito. El sitio que te da voz.",
+  description: "Apoya tus favoritos y participa en las rondas de apoyo de mifavorito. El sitio que te da voz.",
   applicationName: SITE_NAME,
   alternates: { canonical: "/" },
-  openGraph: { type: "website", locale: "es_ES", siteName: SITE_NAME, title: "mifavorito | El sitio que te da voz", description: "Apoya tus favoritos y participa en las elecciones de mifavorito.", url: SITE_URL, images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "mifavorito — El sitio que te da voz" }] },
-  twitter: { card: "summary_large_image", title: "mifavorito | El sitio que te da voz", description: "Apoya tus favoritos y participa en las elecciones de mifavorito.", images: ["/opengraph-image"] },
+  openGraph: { type: "website", locale: "es_ES", siteName: SITE_NAME, title: "mifavorito | El sitio que te da voz", description: "Apoya tus favoritos y participa en las rondas de apoyo de mifavorito.", url: SITE_URL, images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "mifavorito — El sitio que te da voz" }] },
+  twitter: { card: "summary_large_image", title: "mifavorito | El sitio que te da voz", description: "Apoya tus favoritos y participa en las rondas de apoyo de mifavorito.", images: ["/opengraph-image"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
