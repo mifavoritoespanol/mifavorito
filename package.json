@@ -15,7 +15,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-icons": "^5.7.0",
-    "stripe": "^23.0.0"
+    "stripe": "^23.0.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
