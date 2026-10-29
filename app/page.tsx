@@ -96,6 +96,7 @@ export default function Home() {
       list.push(item);
       map.set(item.category_id, list);
     }
+    for (const list of map.values()) list.sort((a, b) => b.total_cents - a.total_cents || a.name.localeCompare(b.name, "es"));
     return map;
   }, [items]);
 
