@@ -112,7 +112,7 @@ export default function Home() {
     })).sort((a, b) => b.total_cents - a.total_cents);
   }, [demoMode, openCategory?.slug, openItems]);
 
-  function renderRow(item: Item) {
+  function renderRow(item: Item, allowSupport = true) {
     const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
     const rank = list.filter((entry) => entry.total_cents > item.total_cents).length + 1;
     const above = list.find((entry) => entry.total_cents > item.total_cents);
@@ -126,6 +126,8 @@ export default function Home() {
         onSupport={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "support", allowPromo: false })}
         onShare={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "share", allowPromo: false })}
         compactVotes
+        allowSupport={allowSupport}
+        adminStatus={isAdmin ? ((item as Item & { status?: "pending" | "approved" | "rejected" }).status ?? "approved") : undefined}
       />
     );
   }
@@ -177,7 +179,7 @@ export default function Home() {
                         Aún no hay nadie. ¡Sé el primero!
                       </p>
                     ) : (
-                      <ol className="space-y-3">{top.map(renderRow)}</ol>
+                      <ol className="space-y-3">{top.map((item) => renderRow(item, isOpen))}</ol>
                     )}
                   </div>
                   {!canBrowse && (
