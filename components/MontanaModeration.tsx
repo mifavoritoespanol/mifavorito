@@ -29,7 +29,7 @@ const inputClass = "w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py
 function statusLabel(status: AdminItem["status"]) {
   if (status === "approved") return "Visible";
   if (status === "pending") return "Pendiente";
-  return "Retirada";
+  return "Oculta";
 }
 
 export default function MontanaModeration() {
@@ -183,7 +183,7 @@ export default function MontanaModeration() {
   async function changeItemStatus(item: AdminItem, status: "approved" | "rejected") {
     if (!session) return;
     if (item.status === "approved" && status === "rejected" &&
-        !window.confirm(`¿Retirar «${item.name}» del ranking público? Se conservarán sus apoyos y podrás restaurarla después.`)) return;
+        !window.confirm(`¿Ocultar «${item.name}» del ranking público? Se conservarán sus apoyos y podrás volver a mostrarla.`)) return;
 
     setBusy(String(item.id));
     setMessage("");
@@ -324,10 +324,10 @@ export default function MontanaModeration() {
                       </div>
                       <div className="flex gap-2">
                         {item.status === "approved" ? (
-                          <button disabled={busy === String(item.id)} onClick={() => void changeItemStatus(item, "rejected")} className="rounded-full border border-red-300/25 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Retirar</button>
+                          <button disabled={busy === String(item.id)} onClick={() => void changeItemStatus(item, "rejected")} className="rounded-full border border-red-300/25 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Ocultar</button>
                         ) : (
                           <>
-                            <button disabled={busy === String(item.id)} onClick={() => void changeItemStatus(item, "approved")} className="rounded-full border border-emerald-300/25 px-3 py-2 text-xs font-bold text-emerald-200 disabled:opacity-50">{item.status === "pending" ? "Aprobar" : "Restaurar"}</button>
+                            <button disabled={busy === String(item.id)} onClick={() => void changeItemStatus(item, "approved")} className="rounded-full border border-emerald-300/25 px-3 py-2 text-xs font-bold text-emerald-200 disabled:opacity-50">{item.status === "pending" ? "Aprobar" : "Mostrar"}</button>
                             {item.status === "pending" && <button disabled={busy === String(item.id)} onClick={() => void changeItemStatus(item, "rejected")} className="rounded-full border border-red-300/25 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Rechazar</button>}
                           </>
                         )}
@@ -355,7 +355,7 @@ export default function MontanaModeration() {
                           <strong className="text-base text-white">{category.emoji} {category.name}</strong>
                           <span className="text-zinc-400">→</span>
                         </span>
-                        <span className="mt-2 block text-xs text-zinc-400">{visible} visibles · {pending} pendientes · {categoryRows.length - visible - pending} retiradas</span>
+                        <span className="mt-2 block text-xs text-zinc-400">{visible} visibles · {pending} pendientes · {categoryRows.length - visible - pending} ocultas</span>
                       </button>
                     </li>
                   );
