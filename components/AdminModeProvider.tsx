@@ -12,7 +12,7 @@ export function useAdminMode() {
 
 export default function AdminModeProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [authorizedToken, setAuthorizedToken] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -26,23 +26,21 @@ export default function AdminModeProvider({ children }: { children: ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!accessToken) {
-      setIsAdmin(false);
-      return;
-    }
+    if (!accessToken) return;
     let alive = true;
     void fetch("/api/admin/check", {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: "no-store",
     }).then(async (response) => {
       const result = await response.json();
-      if (alive) setIsAdmin(response.ok && result.isAdmin === true);
+      if (alive) setAuthorizedToken(response.ok && result.isAdmin === true ? accessToken : null);
     }).catch(() => {
-      if (alive) setIsAdmin(false);
+      if (alive) setAuthorizedToken(null);
     });
     return () => { alive = false; };
   }, [accessToken]);
 
+  const isAdmin = Boolean(accessToken && authorizedToken === accessToken);
   const value = useMemo(() => ({ isAdmin, accessToken }), [isAdmin, accessToken]);
   return <AdminModeContext.Provider value={value}>{children}</AdminModeContext.Provider>;
 }
