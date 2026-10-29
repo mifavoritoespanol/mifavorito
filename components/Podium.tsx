@@ -4,6 +4,7 @@ import { voteLabel } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
 import { countryFlag, countryName } from "@/lib/countries";
 
+type AdminStatus = "pending" | "approved" | "rejected";
 const spots = [
   { idx: 1, label: "2", size: 68, ped: "h-14", color: "from-slate-200 to-slate-400" },
   { idx: 0, label: "1", size: 88, ped: "h-24", color: "from-amber-200 to-amber-400" },
@@ -11,13 +12,30 @@ const spots = [
 ];
 
 export default function Podium({
-  items,
-  onSupport,
+  items, onSupport, allowSupport = true, adminStatuses, onAdminStatusChange,
 }: {
   items: Item[];
   onSupport: (item: Item) => void;
+  allowSupport?: boolean;
+  adminStatuses?: Record<number, AdminStatus>;
+  onAdminStatusChange?: (item: Item, status: "approved" | "rejected") => void;
 }) {
   const tiedTopThree = items.length >= 3 && items.slice(0, 3).every((item) => item.total_cents === items[0].total_cents);
+
+  function actions(item: Item) {
+    const status = adminStatuses?.[item.id];
+    return (
+      <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+        {allowSupport && <button onClick={() => onSupport(item)} className="btn-apoyar rounded-full px-3 py-1.5 text-xs">Apoyar</button>}
+        {onAdminStatusChange && (status === "approved" || status === "rejected") && (
+          <button onClick={() => onAdminStatusChange(item, status === "approved" ? "rejected" : "approved")}
+            className={`rounded-full border px-3 py-1.5 text-xs font-bold ${status === "approved" ? "border-red-300/25 text-red-200" : "border-emerald-300/25 text-emerald-200"}`}>
+            {status === "approved" ? "Ocultar" : "Mostrar"}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (tiedTopThree) {
     return (
@@ -32,7 +50,7 @@ export default function Podium({
               </div>
             </a>
             <div className="mt-1 text-xs font-bold text-amber-300">{voteLabel(item.total_cents)}</div>
-            <button onClick={() => onSupport(item)} className="btn-apoyar mt-2 rounded-full px-3 py-1.5 text-xs">Apoyar</button>
+            {actions(item)}
           </div>
         ))}
       </div>
@@ -54,7 +72,7 @@ export default function Podium({
               </div>
             </a>
             <div className="text-sm font-bold text-amber-300">{voteLabel(it.total_cents)}</div>
-            <button onClick={() => onSupport(it)} className="btn-apoyar mt-2 rounded-full px-4 py-1.5 text-xs">Apoyar</button>
+            {actions(it)}
             <div className={`mt-3 flex w-full items-center justify-center rounded-t-2xl bg-gradient-to-b ${s.color} text-3xl font-extrabold text-black/50 ${s.ped}`}>{s.label}</div>
           </div>
         );
