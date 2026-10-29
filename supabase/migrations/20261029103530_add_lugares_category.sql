@@ -11,6 +11,10 @@ set name = 'Lugares emblemáticos', emoji = '🏛️'
 where slug = 'lugares';
 
 update public.categories
+set sort = 6
+where slug not in ('bebidas', 'comidas', 'lugares', 'paises', 'empresas', 'equipos', 'estrellas');
+
+update public.categories
 set sort = case slug
   when 'bebidas' then 1
   when 'comidas' then 2
@@ -24,4 +28,3 @@ end
 where slug in ('bebidas', 'comidas', 'lugares', 'paises', 'empresas', 'equipos', 'estrellas');
 
 commit;
-
