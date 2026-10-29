@@ -43,7 +43,7 @@ function CategoryView() {
           const response = await fetch("/api/admin/manage", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
           const result = await response.json();
           if (response.ok) {
-            if (alive) setItems((result.items ?? []).filter((item: BrowseItem) => item.category_id === cat.id).map((item: BrowseItem) => ({ ...item, category_slug: slug })));
+            if (alive) setItems((result.items ?? []) .filter((item: BrowseItem) => item.category_id === cat.id).sort((a: BrowseItem, b: BrowseItem) => b.total_cents - a.total_cents || a.name.localeCompare(b.name, "es")).map((item: BrowseItem) => ({ ...item, category_slug: slug })));
             return;
           }
         } catch { /* Fall back to the approved public list when admin access expires. */ }
@@ -81,7 +81,7 @@ function CategoryView() {
   async function setOptionStatus(item: BrowseItem, status: "approved" | "rejected") {
     if (!isAdmin || !accessToken) return;
     if (item.status === "approved" && status === "rejected" &&
-      !window.confirm(`Masquer «${item.name}» du classement público? Sus apoyos se conservarán y podrás volver a mostrarlo.`)) return;
+      !window.confirm(`¿Ocultar «${item.name}» del ranking público? Se conservarán sus apoyos y podrás volver a mostrarlo.`)) return;
     setAdminMessage("");
     const response = await fetch("/api/admin/manage", {
       method: "PATCH",
