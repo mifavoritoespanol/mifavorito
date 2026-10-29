@@ -8,12 +8,14 @@ import { getCountrySnapshot, getServerCountrySnapshot, subscribeToCountry } from
 import { COUNTRIES } from "@/lib/countries";
 import Logo from "@/components/Logo";
 import { FaCircleInfo } from "react-icons/fa6";
+import { useAdminMode } from "@/components/AdminModeProvider";
 
 export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [flagFailed, setFlagFailed] = useState(false);
   const path = usePathname();
   const country = useSyncExternalStore(subscribeToCountry, getCountrySnapshot, getServerCountrySnapshot);
+  const { isAdmin } = useAdminMode();
 
   useEffect(() => {
     supabase
@@ -33,6 +35,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl">
       <div className="mx-auto max-w-3xl px-4">
+        {isAdmin && <div className="flex items-center justify-between gap-3 border-b border-amber-200/15 py-2 text-[11px] font-bold uppercase tracking-wider text-amber-100"><span>Vista administrativa · categorías desbloqueadas</span><Link href="/montana" className="rounded-full border border-amber-100/20 px-3 py-1 normal-case tracking-normal hover:bg-white/10">Administración</Link></div>}
         <div className="flex items-center justify-between gap-3 py-3">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <Logo size={32} />
@@ -101,8 +104,8 @@ export default function Header() {
         </div>
         <div className="flex gap-2 overflow-x-auto pb-3">
           {categories
-            .filter((category) => ["bebidas", "comidas", "estrellas", "paises", "empresas"].includes(category.slug))
-            .sort((a, b) => ["bebidas", "comidas", "estrellas", "paises", "empresas"].indexOf(a.slug) - ["bebidas", "comidas", "estrellas", "paises", "empresas"].indexOf(b.slug))
+            .filter((category) => ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].includes(category.slug))
+            .sort((a, b) => ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].indexOf(a.slug) - ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].indexOf(b.slug))
             .map((category) => {
             const label = category.slug === "estrellas"
               ? "Música"
@@ -110,7 +113,9 @@ export default function Header() {
                 ? "Bebidas"
                 : category.slug === "comidas"
                   ? "Comida"
-                  : category.slug === "paises"
+                  : category.slug === "lugares"
+                ? "Lugares"
+                : category.slug === "paises"
                 ? "Países"
                 : "Empresas";
             return (

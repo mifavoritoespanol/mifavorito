@@ -7,6 +7,7 @@ import ItemSheet from "@/components/ItemSheet";
 import ElectionHero, { type ElectionStatus } from "@/components/ElectionHero";
 import CountryLeaderboard from "@/components/CountryLeaderboard";
 import { useLocalDemoMode } from "@/lib/demoMode";
+import { useAdminMode } from "@/components/AdminModeProvider";
 
 const tint: Record<string, string> = {
   estrellas: "bg-white/[0.045]",
@@ -17,8 +18,8 @@ const tint: Record<string, string> = {
   equipos: "bg-white/[0.035]",
 };
 
-const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, estrellas: 2 };
-const SCHEDULED_CATEGORY_SLUGS = ["bebidas", "comidas", "estrellas"];
+const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, lugares: 2, paises: 3, empresas: 4, equipos: 5, estrellas: 99 };
+const SCHEDULED_CATEGORY_SLUGS = ["bebidas", "comidas", "lugares", "estrellas"];
 
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -28,6 +29,7 @@ export default function Home() {
   const [thanks, setThanks] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const demoMode = useLocalDemoMode();
+  const { isAdmin, accessToken } = useAdminMode();
 
   useEffect(() => {
     let alive = true;
@@ -67,14 +69,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    supabase
-      .from("items")
-      .select("*")
-      .eq("status", "approved")
-      .order("total_cents", { ascending: false })
-      .order("name", { ascending: true })
-      .then(({ data }) => setItems(data ?? []));
-  }, [refresh]);
+    let alive = true;
+    async function loadItems() {
+      if (isAdmin && accessToken) {
+        try {
+          const response = await fetch("/api/admin/manage", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+          if (response.ok) {
+            const result = await response.json();
+            if (alive) setItems(result.items ?? []);
+            return;
+          }
+        } catch { /* Fall back to the public list if admin access expires. */ }
+      }
+      const { data } = await supabase.from("items").select("*").eq("status", "approved")
+        .order("total_cents", { ascending: false }).order("name", { ascending: true });
+      if (alive) setItems(data ?? []);
+    }
+    void loadItems();
+    return () => { alive = false; };
+  }, [refresh, isAdmin, accessToken]);
 
   const byCat = useMemo(() => {
     const map = new Map<number, Item[]>();
@@ -83,6 +96,7 @@ export default function Home() {
       list.push(item);
       map.set(item.category_id, list);
     }
+    for (const list of map.values()) list.sort((a, b) => b.total_cents - a.total_cents || a.name.localeCompare(b.name, "es"));
     return map;
   }, [items]);
 
@@ -99,7 +113,7 @@ export default function Home() {
     })).sort((a, b) => b.total_cents - a.total_cents);
   }, [demoMode, openCategory?.slug, openItems]);
 
-  function renderRow(item: Item) {
+  function renderRow(item: Item, allowSupport = true) {
     const list = item.category_id === openCategory?.id ? displayedOpenItems : byCat.get(item.category_id) ?? [];
     const rank = list.filter((entry) => entry.total_cents > item.total_cents).length + 1;
     const above = list.find((entry) => entry.total_cents > item.total_cents);
@@ -113,6 +127,8 @@ export default function Home() {
         onSupport={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "support", allowPromo: false })}
         onShare={() => setSheet({ item: { ...item, category_slug: orderedCategories.find((category) => category.id === item.category_id)?.slug }, mode: "share", allowPromo: false })}
         compactVotes
+        allowSupport={allowSupport}
+        adminStatus={isAdmin ? ((item as Item & { status?: "pending" | "approved" | "rejected" }).status ?? "approved") : undefined}
       />
     );
   }
@@ -134,6 +150,7 @@ export default function Home() {
         {orderedCategories.map((category) => {
             const electionStatus = elections[category.slug] ?? null;
             const isOpen = electionStatus?.isOpen === true;
+            const canBrowse = isOpen || isAdmin;
             const categoryItems = category.slug === "estrellas" && isOpen ? displayedOpenItems : byCat.get(category.id) ?? [];
             const top = categoryItems.slice(0, 3);
             return (
@@ -145,28 +162,28 @@ export default function Home() {
                   <h2 className="text-lg font-extrabold text-white">
                     {category.emoji} {category.slug === "estrellas" ? "Música" : category.name}
                   </h2>
-                  {isOpen ? (
+                  {canBrowse ? (
                     <div className="flex flex-wrap items-center justify-end gap-3">
                       <a href={`/c/${category.slug}`} className="text-sm font-semibold text-amber-200 transition hover:text-amber-100">
                         Ver clasificación →
                       </a>
-                      <ElectionHero status={electionStatus} categorySlug={category.slug} compact />
+                      {isOpen && <ElectionHero status={electionStatus} categorySlug={category.slug} compact />}
                     </div>
                   ) : (
                     <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">🔒 Próximamente</span>
                   )}
                 </div>
                 <div className="relative min-h-[18rem] p-3 sm:p-4">
-                  <div aria-hidden={!isOpen} inert={!isOpen} className={isOpen ? "" : "pointer-events-none select-none blur-[3px] opacity-45"}>
+                  <div aria-hidden={!canBrowse} inert={!canBrowse} className={canBrowse ? "" : "pointer-events-none select-none blur-[3px] opacity-45"}>
                     {top.length === 0 ? (
                       <p className="rounded-2xl border border-dashed border-zinc-700 p-4 text-center text-sm text-zinc-500">
                         Aún no hay nadie. ¡Sé el primero!
                       </p>
                     ) : (
-                      <ol className="space-y-3">{top.map(renderRow)}</ol>
+                      <ol className="space-y-3">{top.map((item) => renderRow(item, isOpen))}</ol>
                     )}
                   </div>
-                  {!isOpen && (
+                  {!canBrowse && (
                     <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/45 p-3 backdrop-blur-[2px]">
                       {SCHEDULED_CATEGORY_SLUGS.includes(category.slug) ? (
                         <ElectionHero status={electionStatus} categorySlug={category.slug} />

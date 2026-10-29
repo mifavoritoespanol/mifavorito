@@ -5,8 +5,11 @@ import { voteLabel, voteLabelCompact, medals } from "@/lib/shared";
 import Avatar from "@/components/Avatar";
 import { countryFlag, countryName } from "@/lib/countries";
 
+type AdminStatus = "pending" | "approved" | "rejected";
+
 export default function RankRow({
-  item, rank, max, gap, onSupport, onShare, compactVotes = false,
+  item, rank, max, gap, onSupport, onShare, compactVotes = false, allowSupport = true,
+  adminStatus, onAdminStatusChange,
 }: {
   item: Item;
   rank: number;
@@ -15,6 +18,9 @@ export default function RankRow({
   onSupport: () => void;
   onShare: () => void;
   compactVotes?: boolean;
+  allowSupport?: boolean;
+  adminStatus?: AdminStatus;
+  onAdminStatusChange?: (item: Item, status: "approved" | "rejected") => void;
 }) {
   const percentage = Math.min(100, Math.max(0, (item.total_cents / (max || 1)) * 100));
   const visiblePercentage = Math.max(3, percentage);
@@ -45,9 +51,16 @@ export default function RankRow({
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500 via-amber-300 to-emerald-400 transition-[clip-path] duration-500" style={{ clipPath: `inset(0 ${100 - visiblePercentage}% 0 0)` }} aria-hidden="true" />
       </div>
       {gap !== undefined && gap > 0 && <div className="mt-2 text-xs text-rose-300">Faltan {formatVotes(gap)} para subir al #{rank - 1}</div>}
-      <div className="mt-3 flex gap-2">
-        <button onClick={onSupport} className="btn-apoyar flex-1 rounded-full py-2.5 text-sm">Apoyar</button>
-        <button onClick={onShare} className="flex items-center gap-2 rounded-full border border-zinc-700 px-4 text-sm text-zinc-200"><FaShareNodes /> Impulsar</button>
+      {adminStatus === "pending" && <div className="mt-2 text-xs font-semibold text-amber-200">Pendiente de aprobación</div>}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {allowSupport && <button onClick={onSupport} className="btn-apoyar flex-1 rounded-full py-2.5 text-sm">Apoyar</button>}
+        {onShare && <button onClick={onShare} className="flex items-center gap-2 rounded-full border border-zinc-700 px-4 py-2 text-sm text-zinc-200"><FaShareNodes /> Impulsar</button>}
+        {onAdminStatusChange && (adminStatus === "approved" || adminStatus === "rejected") && (
+          <button onClick={() => onAdminStatusChange(item, adminStatus === "approved" ? "rejected" : "approved")}
+            className={`rounded-full border px-4 py-2 text-sm font-bold ${adminStatus === "approved" ? "border-red-300/25 text-red-200" : "border-emerald-300/25 text-emerald-200"}`}>
+            {adminStatus === "approved" ? "Ocultar" : "Mostrar"}
+          </button>
+        )}
       </div>
     </li>
   );

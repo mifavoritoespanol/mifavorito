@@ -12,10 +12,16 @@ export const ELECTIONS = [
     closesAt: "2026-12-31T23:00:00.000Z",
   },
   {
-    categorySlug: "estrellas",
-    categoryName: "Música",
+    categorySlug: "lugares",
+    categoryName: "Lugares emblemáticos",
     opensAt: "2027-01-14T23:00:00.000Z",
     closesAt: "2027-01-31T23:00:00.000Z",
+  },
+  {
+    categorySlug: "estrellas",
+    categoryName: "Música",
+    opensAt: "2027-02-14T23:00:00.000Z",
+    closesAt: "2027-02-28T23:00:00.000Z",
   },
 ] as const;
 
