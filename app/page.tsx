@@ -18,7 +18,7 @@ const tint: Record<string, string> = {
   equipos: "bg-white/[0.035]",
 };
 
-const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, lugares: 2, paises: 3, empresas: 4, equipos: 5, estrellas: 6 };
+const categoryPriority: Record<string, number> = { bebidas: 0, comidas: 1, lugares: 2, paises: 3, empresas: 4, equipos: 5, estrellas: 99 };
 const SCHEDULED_CATEGORY_SLUGS = ["bebidas", "comidas", "lugares", "estrellas"];
 
 export default function Home() {
