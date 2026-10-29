@@ -105,7 +105,7 @@ export default function Header() {
         <div className="flex gap-2 overflow-x-auto pb-3">
           {categories
             .filter((category) => ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].includes(category.slug))
-            .sort((a, b) => ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].indexOf(a.slug) - ["bebidas", "comidas", "estrellas", "paises", "empresas"].indexOf(b.slug))
+            .sort((a, b) => ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].indexOf(a.slug) - ["bebidas", "comidas", "lugares", "paises", "empresas", "estrellas"].indexOf(b.slug))
             .map((category) => {
             const label = category.slug === "estrellas"
               ? "Música"
